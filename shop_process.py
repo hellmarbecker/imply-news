@@ -67,7 +67,7 @@ def main():
             # Here we end up when the session was in exit state
             print(f'--> removing session id {thisSession.model.id}')
             allSessions.remove(thisSession)
-        time.sleep(1)
+        time.sleep(random.uniform(0.2, 3.0))
         
 
 if __name__ == "__main__":
