@@ -1,18 +1,27 @@
 import json
 import random
 import time
+from StateMachine import StateMachine, State
 
 baseurl = "https://imply-shop.com"
 
-class Session:
+class Session(StateMachine):
 
-    def __init__(self):
-        self.state = "initial"
-        self.utm_campaign = "Google"
+    landingPage = State('LandingPage', initial=True)
+    shopPage = State('ShopPage')
+    detailPage = State('DetailPage')
+    addToBasket = State('AddToBasket')
+    checkoutPage = State('CheckoutPage')
+    payment = State('Payment')
+    exitSession = State('ExitSession')
 
-    def advance()
-        if self.state == "initial":
-            self.state = "next"
+    toShop = landingPage.to(shopPage)
+    toDetail = shopPage.to(detailPage)
+    toBasket = detailPage.to(addToBasket)
+    toCheckout = addToBasket.to(checkoutPage)
+    toPayment = checkoutPage.to(payment)
+    toExit = landingPage.to(exitSession) | shopPage.to(exitSession) | detailPage.to(exitSession) |
+        addToBasket.to(exitSession) | checkoutPage.to(exitSession) | payment.to(exitSession)
 
 def main():
 
