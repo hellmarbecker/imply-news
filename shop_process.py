@@ -7,6 +7,10 @@ from statemachine.exceptions import TransitionNotAllowed
 
 baseurl = "https://imply-shop.com"
 
+campaigns = { 'fb-1 yoga pants': 0.3, 'fb-2 yoga mat': 0.4, 'af-1 ball': 0.3 }
+products = { 'yoga pants': 0.3, 'yoga mat': 0.4, 'ball': 0.3 }
+gender = { 'm': 0.5, 'w': 0.6 }
+age = { '18-25': 0.1, '26-35': 0.1, '36-50': 0.4, '51-60': 0.3, '61+': 0.1 }
 
 class SessionMachine(StateMachine):
 
@@ -40,6 +44,20 @@ class SessionModel(MachineMixin):
         return "{}({!r})".format(type(self).__name__, self.__dict__)
 
 
+def selectAttr(d):
+
+    x = random.random()
+    cume = 0.0
+    sel = None
+
+    for k, p in d.items():
+        cume += p
+        if cume >= x:
+            sel = k
+            break
+    return sel
+
+
 def main():
 
     sessionId = 0
@@ -59,6 +77,7 @@ def main():
         try:
             thisSession = random.choice(allSessions)
             print(f'--> Session id {thisSession.model.id}')
+            print(thisSession.model)
             thisSession.advance()
             print(f'--> Session new state {thisSession.model.state}')
         except IndexError:
