@@ -7,10 +7,10 @@ from statemachine.exceptions import TransitionNotAllowed
 
 baseurl = "https://imply-shop.com"
 
-campaigns = { 'fb-1 yoga pants': 0.3, 'fb-2 yoga mat': 0.4, 'af-1 ball': 0.3 }
-products = { 'yoga pants': 0.3, 'yoga mat': 0.4, 'ball': 0.3 }
-gender = { 'm': 0.5, 'w': 0.6 }
-age = { '18-25': 0.1, '26-35': 0.1, '36-50': 0.4, '51-60': 0.3, '61+': 0.1 }
+d_campaign = { 'fb-1 yoga pants': 0.3, 'fb-2 yoga mat': 0.4, 'af-1 ball': 0.3 }
+d_product = { 'yoga pants': 0.3, 'yoga mat': 0.4, 'ball': 0.3 }
+d_gender = { 'm': 0.5, 'w': 0.6 }
+d_age = { '18-25': 0.1, '26-35': 0.1, '36-50': 0.4, '51-60': 0.3, '61+': 0.1 }
 
 class SessionMachine(StateMachine):
 
@@ -58,6 +58,10 @@ def selectAttr(d):
     return sel
 
 
+def emit(s):
+    print(s.model)
+
+
 def main():
 
     sessionId = 0
@@ -70,7 +74,14 @@ def main():
         if random.random() < 0.5:
             sessionId += 1
             print(f'--> Creating Session: id {sessionId}')
-            newSessionModel = SessionModel(state = 'landingPage', id = sessionId)
+            newSessionModel = SessionModel(
+                state = 'landingPage',
+                id = sessionId,
+                campaign = selectAttr(d_campaign),
+                product = selectAttr(d_product),
+                gender = selectAttr(d_gender),
+                age = selectAttr(d_age)
+            )
             newSession = SessionMachine(newSessionModel)
             allSessions.append(newSession)
         # Pick one of the sessions
