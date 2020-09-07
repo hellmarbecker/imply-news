@@ -5,12 +5,18 @@ from statemachine import StateMachine, State
 from statemachine.mixins import MachineMixin
 from statemachine.exceptions import TransitionNotAllowed
 
+
 baseurl = "https://imply-shop.com"
+
+# Attribute selector dicts. Key is the attribute value, value is the probability of occurrence.
+# Probabilities must add up to 1.
 
 d_campaign = { 'fb-1 yoga pants': 0.3, 'fb-2 yoga mat': 0.4, 'af-1 ball': 0.3 }
 d_product = { 'yoga pants': 0.3, 'yoga mat': 0.4, 'ball': 0.3 }
 d_gender = { 'm': 0.5, 'w': 0.6 }
 d_age = { '18-25': 0.1, '26-35': 0.1, '36-50': 0.4, '51-60': 0.3, '61+': 0.1 }
+
+# State transitions for the shop
 
 class SessionMachine(StateMachine):
 
@@ -31,6 +37,7 @@ class SessionMachine(StateMachine):
     advance = landingPage.to(shopPage) | shopPage.to(detailPage) | detailPage.to(addToBasket) \
         | addToBasket.to(checkoutPage) | checkoutPage.to(payment) | payment.to(exitSession)
 
+# Model of the shop with attributes
 
 class SessionModel(MachineMixin):
     state_machine_name = 'SessionMachine'
@@ -43,6 +50,7 @@ class SessionModel(MachineMixin):
     def __repr__(self):
         return "{}({!r})".format(type(self).__name__, self.__dict__)
 
+# Attribute selector function
 
 def selectAttr(d):
 
@@ -57,10 +65,12 @@ def selectAttr(d):
             break
     return sel
 
+# Output function - write to stdout as JSON, so it can be piped into Kafka
 
 def emit(s):
     print(s.model)
 
+# --- Main entry point ---
 
 def main():
 
