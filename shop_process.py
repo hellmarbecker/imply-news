@@ -74,13 +74,16 @@ def main():
         if random.random() < 0.5:
             sessionId += 1
             print(f'--> Creating Session: id {sessionId}')
+            salesAmount = random.uniform(10.0, 90.0);
             newSessionModel = SessionModel(
                 state = 'landingPage',
                 id = sessionId,
                 campaign = selectAttr(d_campaign),
                 product = selectAttr(d_product),
                 gender = selectAttr(d_gender),
-                age = selectAttr(d_age)
+                age = selectAttr(d_age),
+                amount = salesAmount,
+                profit = salesAmount * random.uniform(0.02, 0.10)
             )
             newSession = SessionMachine(newSessionModel)
             allSessions.append(newSession)
