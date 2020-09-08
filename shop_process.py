@@ -1,6 +1,7 @@
 import json
 import random
 import time
+import logging
 from statemachine import StateMachine, State
 from statemachine.mixins import MachineMixin
 from statemachine.exceptions import TransitionNotAllowed
@@ -38,7 +39,7 @@ class SessionMachine(StateMachine):
         | addToBasket.to(checkoutPage) | checkoutPage.to(payment) | payment.to(exitSession)
 
     def on_enter_state(self, s):
-        print(f'BAM!! Change - time now: {time.time()} entering state: {s}')
+        logging.debug(f'BAM!! Change - time now: {time.time()} entering state: {s}')
 
 # Model of the shop with attributes
 
@@ -94,16 +95,17 @@ def emit(s):
 
 def main():
 
+    logging.basicConfig(level=logging.DEBUG)
     sessionId = 0
     allSessions = []
 
     while True:
-        print('Top of loop')
-        print(f'Total elements in list: {len(allSessions)}')
+        logging.debug('Top of loop')
+        logging.debug(f'Total elements in list: {len(allSessions)}')
         # With a certain probability, create a new session
         if random.random() < 0.5:
             sessionId += 1
-            print(f'--> Creating Session: id {sessionId}')
+            logging.debug(f'--> Creating Session: id {sessionId}')
             salesAmount = random.uniform(10.0, 90.0);
             newSessionModel = SessionModel(
                 state = 'landingPage',
@@ -120,15 +122,15 @@ def main():
         # Pick one of the sessions
         try:
             thisSession = random.choice(allSessions)
-            print(f'--> Session id {thisSession.model.id}')
-            print(thisSession.model)
+            logging.debug(f'--> Session id {thisSession.model.id}')
+            logging.debug(thisSession.model)
             thisSession.advance()
             emit(thisSession)
         except IndexError:
-            print('--> No sessions to choose from')
+            logging.debug('--> No sessions to choose from')
         except TransitionNotAllowed:
             # Here we end up when the session was in exit state
-            print(f'--> removing session id {thisSession.model.id}')
+            logging.debug(f'--> removing session id {thisSession.model.id}')
             allSessions.remove(thisSession)
         time.sleep(random.uniform(0.2, 3.0))
         
