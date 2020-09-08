@@ -42,6 +42,9 @@ class SessionMachine(StateMachine):
 class SessionModel(MachineMixin):
     state_machine_name = 'SessionMachine'
 
+    def url(self):
+        return baseurl + '/' + self.state
+
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -69,6 +72,7 @@ def selectAttr(d):
 
 def emit(s):
     print(s.model)
+    print(s.model.url())
 
 # --- Main entry point ---
 
@@ -104,6 +108,7 @@ def main():
             print(thisSession.model)
             thisSession.advance()
             print(f'--> Session new state {thisSession.model.state}')
+            emit(thisSession)
         except IndexError:
             print('--> No sessions to choose from')
         except TransitionNotAllowed:
