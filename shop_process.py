@@ -37,26 +37,8 @@ class SessionMachine(StateMachine):
     advance = landingPage.to(shopPage) | shopPage.to(detailPage) | detailPage.to(addToBasket) \
         | addToBasket.to(checkoutPage) | checkoutPage.to(payment) | payment.to(exitSession)
 
-    def on_enter_landingPage(self):
-        self.model.stateCB()
-
-    def on_enter_shopPage(self):
-        self.model.stateCB()
-
-    def on_enter_detailPage(self):
-        self.model.stateCB()
-
-    def on_enter_addToBasket(self):
-        self.model.stateCB()
-
-    def on_enter_checkoutPage(self):
-        self.model.stateCB()
-
-    def on_enter_payment(self):
-        self.model.stateCB()
-
-    def on_enter_exitSession(self):
-        self.model.stateCB()
+    def on_enter_state(self, s):
+        print(f'BAM!! Change - time now: {time.time()} entering state: {s}')
 
 # Model of the shop with attributes
 
@@ -65,9 +47,6 @@ class SessionModel(MachineMixin):
 
     def url(self):
         return baseurl + '/' + self.state
-
-    def stateCB(self):
-        print(f'change - time now: {time.time()} entering state: {self.state}')
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
