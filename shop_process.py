@@ -76,10 +76,19 @@ def selectAttr(d):
 def emit(s):
 
     m = s.model
-    #emitRecord = {
-    #    'timestamp' : 
-    print(s.model)
-    print(s.model.url())
+    emitRecord = {
+        'timestamp' : time.time(),
+        'url' : m.url(),
+        'state' : m.state,
+        'id' : m.id,
+        'campaign' : m.campaign,
+        'product' : m.product,
+        'gender' : m.gender,
+        'age' : m.age,
+        'amount' : round(m.amount, 2),
+        'profit' : round(m.profit, 2)
+    }
+    print(json.dumps(emitRecord))
 
 # --- Main entry point ---
 
@@ -114,7 +123,6 @@ def main():
             print(f'--> Session id {thisSession.model.id}')
             print(thisSession.model)
             thisSession.advance()
-            # print(f'--> Session new state {thisSession.model.state}')
             emit(thisSession)
         except IndexError:
             print('--> No sessions to choose from')
