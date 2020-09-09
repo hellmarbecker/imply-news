@@ -1,7 +1,7 @@
 import json
 import random
 import time
-import logging
+import argparse, sys, logging
 from statemachine import StateMachine, State
 from statemachine.mixins import MachineMixin
 from statemachine.exceptions import TransitionNotAllowed
@@ -12,7 +12,8 @@ baseurl = "https://imply-shop.com"
 # Attribute selector dicts. Key is the attribute value, value is the probability of occurrence.
 # Probabilities must add up to 1.
 
-d_campaign = { 'fb-1 yoga pants': 0.3, 'fb-2 yoga mat': 0.4, 'af-1 ball': 0.3 }
+d_channel = { 'social media': 0.3, 'organic search': 0.2, 'paid search': 0.3, 'display': 0.1, 'affiliate': 0.1 } 
+d_campaign = { 'fb-1 yoga pants': 0.3, 'fb-2 yoga mat': 0.4, 'af-1 ball': 0.2, 'google-1 ball': 0.1 }
 d_product = { 'yoga pants': 0.3, 'yoga mat': 0.4, 'ball': 0.3 }
 d_gender = { 'm': 0.5, 'w': 0.6 }
 d_age = { '18-25': 0.1, '26-35': 0.1, '36-50': 0.4, '51-60': 0.3, '61+': 0.1 }
@@ -38,8 +39,9 @@ class SessionMachine(StateMachine):
     advance = landingPage.to(shopPage) | shopPage.to(detailPage) | detailPage.to(addToBasket) \
         | addToBasket.to(checkoutPage) | checkoutPage.to(payment) | payment.to(exitSession)
 
-    def on_enter_state(self, s):
-        logging.debug(f'BAM!! Change - time now: {time.time()} entering state: {s}')
+    def on_exit_state(self, s):
+        logging.debug(f'BAM!! Change - time now: {time.time()} exiting state: {s}')
+        emit(self)
 
 # Model of the shop with attributes
 
@@ -83,6 +85,7 @@ def emit(s):
         'state' : m.state,
         'id' : m.id,
         'campaign' : m.campaign,
+        'channel' : m.channel,
         'product' : m.product,
         'gender' : m.gender,
         'age' : m.age,
@@ -91,11 +94,21 @@ def emit(s):
     }
     print(f'{m.id}|{json.dumps(emitRecord)}')
 
+
 # --- Main entry point ---
 
 def main():
 
-    logging.basicConfig(level=logging.INFO)
+    logLevel = logging.INFO
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--debug', help='Enable debug logging', action='store_true')
+    args = parser.parse_args()
+
+    if args.debug:
+        logLevel = logging.DEBUG
+
+    logging.basicConfig(level=logLevel)
+
     sessionId = 0
     allSessions = []
 
@@ -111,6 +124,7 @@ def main():
                 state = 'landingPage',
                 id = sessionId,
                 campaign = selectAttr(d_campaign),
+                channel = selectAttr(d_channel),
                 product = selectAttr(d_product),
                 gender = selectAttr(d_gender),
                 age = selectAttr(d_age),
@@ -125,7 +139,6 @@ def main():
             logging.debug(f'--> Session id {thisSession.model.id}')
             logging.debug(thisSession.model)
             thisSession.advance()
-            emit(thisSession)
         except IndexError:
             logging.debug('--> No sessions to choose from')
         except TransitionNotAllowed:
