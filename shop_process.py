@@ -89,13 +89,13 @@ def emit(s):
         'amount' : round(m.amount, 2),
         'profit' : round(m.profit, 2)
     }
-    print(json.dumps(emitRecord))
+    print(f'{m.id}|{json.dumps(emitRecord)}')
 
 # --- Main entry point ---
 
 def main():
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     sessionId = 0
     allSessions = []
 
