@@ -20,7 +20,7 @@ With a certain probability, the session will be abandoned/cancelled before payme
 
 Successful completion of a purchase is indicated by reaching state `Payment`.
 
-Campaign attribution is achieved through the `campaign` and `channel` attributes.
+Campaign attribution is achieved through the `campaign` (TODO: and `channel`) attributes.
 
 ## Data output format
 
