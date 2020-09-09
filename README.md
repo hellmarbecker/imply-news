@@ -20,6 +20,8 @@ With a certain probability, the session will be abandoned/cancelled before payme
 
 Successful completion of a purchase is indicated by reaching state `Payment`.
 
+Campaign attribution is achieved through the `campaign` and `channel` attributes.
+
 ## Data output format
 
 Data is output as key|value, where the key is the session ID and the value is the session state JSON. This is then piped into `kafkacat`.
