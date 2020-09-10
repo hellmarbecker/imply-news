@@ -2,10 +2,10 @@ import json
 import random
 import time
 import argparse, sys, logging
-from statemachine import StateMachine, State
-from statemachine.mixins import MachineMixin
-from statemachine.exceptions import TransitionNotAllowed
-
+# from statemachine import StateMachine, State
+# from statemachine.mixins import MachineMixin
+# from statemachine.exceptions import TransitionNotAllowed
+from .exceptions import InvalidStateException
 
 baseurl = "https://imply-news.com"
 
@@ -35,7 +35,19 @@ def selectAttr(d):
 
 # State transitions for the shop
 
-class SessionMachine(StateMachine):
+States = [ 'home', 'initial', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
+
+StateTransitionMatrix = {
+    'home':          { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.30 },
+    'content':       { 'home': 0.10, 'content': 0.40, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+    'clickbait':     { 'home': 0.10, 'content': 0.10, 'clickbait': 0.50, 'subscribe': 0.02, 'plusContent': 0.16, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+    'subscribe':     { 'home': 0.10, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.02, 'plusContent': 0.50, 'affiliateLink': 0.02, 'exitSession': 0.16 },
+    'plusContent':   { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.40, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+    'affiliateLink': { 'home': 0.20, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.00, 'plusContent': 0.05, 'affiliateLink': 0.00, 'exitSession': 0.55 }
+}
+
+
+class Session:
 
     home = State('Home', initial=True)
     content = State('Content')
@@ -47,14 +59,6 @@ class SessionMachine(StateMachine):
 
     # from -> to transition probabilities
    
-    dd_transitionMatrix = {
-        'home':          { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.30 },
-        'content':       { 'home': 0.10, 'content': 0.40, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.10 },
-        'clickbait':     { 'home': 0.10, 'content': 0.10, 'clickbait': 0.50, 'subscribe': 0.02, 'plusContent': 0.16, 'affiliateLink': 0.02, 'exitSession': 0.10 },
-        'subscribe':     { 'home': 0.10, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.02, 'plusContent': 0.50, 'affiliateLink': 0.02, 'exitSession': 0.16 },
-        'plusContent':   { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.40, 'affiliateLink': 0.02, 'exitSession': 0.10 },
-        'affiliateLink': { 'home': 0.20, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.00, 'plusContent': 0.05, 'affiliateLink': 0.00, 'exitSession': 0.55 }
-    }
         
     toHome = home.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
     toContent = content.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
@@ -64,6 +68,24 @@ class SessionMachine(StateMachine):
     toAffiliateLink = affiliateLink.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
     toExitSession = exitSession.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
 
+    def __init__(self, initialState, **kwargs):
+        if initialState not in States:
+            throw InvalidStateException()
+        self.initialState = initialState
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+    def __repr__(self):
+        return "{}({!r})".format(type(self).__name__, self.__dict__)
+
+    def advance(self):
+        newState = selectAttr(SessionMachine.dd_transitionMatrix[self.state])
+        logging.debug(f'advance(): from {self.state} to {newState}')
+        self.statemachine.run(newState)
+
+    def url(self):
+        return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
+
     def on_enter_state(self, s):
         logging.debug(f'Change - time now: {time.time()} entering state: {s}')
         emit(self)
@@ -72,27 +94,6 @@ class SessionMachine(StateMachine):
         logging.debug(f'Change - time now: {time.time()} exiting state: {s}')
         emit(self)
 
-
-# Model of the shop with attributes
-
-class SessionModel(MachineMixin):
-    state_machine_name = 'SessionMachine'
-
-    def url(self):
-        return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
-
-    def advance(self):
-        newState = selectAttr(SessionMachine.dd_transitionMatrix[self.state])
-        logging.debug(f'advance(): from {self.state} to {newState}')
-        self.statemachine.run(newState)
-
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        super(SessionModel, self).__init__()
-
-    def __repr__(self):
-        return "{}({!r})".format(type(self).__name__, self.__dict__)
 
 # Output function - write to stdout as JSON, so it can be piped into Kafka
 
