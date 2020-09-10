@@ -51,6 +51,9 @@ class SessionModel(MachineMixin):
     def url(self):
         return baseurl + '/' + self.state
 
+    def advance(self):
+        self.statemachine.advance()
+
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -120,7 +123,7 @@ def main():
             sessionId += 1
             logging.debug(f'--> Creating Session: id {sessionId}')
             salesAmount = random.uniform(10.0, 90.0);
-            newSessionModel = SessionModel(
+            newSession = SessionModel(
                 state = 'landingPage',
                 id = sessionId,
                 campaign = selectAttr(d_campaign),
@@ -131,19 +134,18 @@ def main():
                 amount = salesAmount,
                 profit = salesAmount * random.uniform(0.02, 0.10)
             )
-            newSession = SessionMachine(newSessionModel)
             allSessions.append(newSession)
         # Pick one of the sessions
         try:
             thisSession = random.choice(allSessions)
-            logging.debug(f'--> Session id {thisSession.model.id}')
-            logging.debug(thisSession.model)
+            logging.debug(f'--> Session id {thisSession.id}')
+            logging.debug(thisSession)
             thisSession.advance()
         except IndexError:
             logging.debug('--> No sessions to choose from')
         except TransitionNotAllowed:
             # Here we end up when the session was in exit state
-            logging.debug(f'--> removing session id {thisSession.model.id}')
+            logging.debug(f'--> removing session id {thisSession.id}')
             allSessions.remove(thisSession)
         time.sleep(random.uniform(0.2, 3.0))
         
