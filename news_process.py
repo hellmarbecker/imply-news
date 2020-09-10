@@ -13,50 +13,10 @@ baseurl = "https://imply-news.com"
 # Probabilities must add up to 1.
 
 d_channel = { 'social media': 0.3, 'organic search': 0.2, 'paid search': 0.3, 'display': 0.1, 'affiliate': 0.1 } 
-d_campaign = { 'fb-1 yoga pants': 0.3, 'fb-2 yoga mat': 0.4, 'af-1 ball': 0.2, 'google-1 ball': 0.1 }
+d_campaign = { 'fb-1 Be Informed': 0.3, 'fb-2 US Election': 0.4, 'af-1 Latest News': 0.2, 'google-1 Be Informed': 0.1 }
 d_product = { 'yoga pants': 0.3, 'yoga mat': 0.4, 'ball': 0.3 }
 d_gender = { 'm': 0.5, 'w': 0.6 }
 d_age = { '18-25': 0.1, '26-35': 0.1, '36-50': 0.4, '51-60': 0.3, '61+': 0.1 }
-
-# State transitions for the shop
-
-class SessionMachine(StateMachine):
-
-    home = State('Home', initial=True)
-    content = State('Content')
-    clickbait = State('Clickbait')
-    subscribe = State('Subscribe')
-    plusContent = State('PlusContent')
-    affiliateLink = State('AffiliateLink')
-    exitSession = State('ExitSession')
-
-    toHome = home.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toContent = content.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toClickbait = clickbait.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toSubscribe = subscribe.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toPlusContent = plusContent.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toAffiliateLink = affiliateLink.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toExitSession = exitSession.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-
-    def on_exit_state(self, s):
-        logging.debug(f'BAM!! Change - time now: {time.time()} exiting state: {s}')
-        emit(self)
-
-# Model of the shop with attributes
-
-class SessionModel(MachineMixin):
-    state_machine_name = 'SessionMachine'
-
-    def url(self):
-        return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
-
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        super(SessionModel, self).__init__()
-
-    def __repr__(self):
-        return "{}({!r})".format(type(self).__name__, self.__dict__)
 
 # Attribute selector function
 
@@ -72,6 +32,67 @@ def selectAttr(d):
             sel = k
             break
     return sel
+
+# State transitions for the shop
+
+class SessionMachine(StateMachine):
+
+    home = State('Home', initial=True)
+    content = State('Content')
+    clickbait = State('Clickbait')
+    subscribe = State('Subscribe')
+    plusContent = State('PlusContent')
+    affiliateLink = State('AffiliateLink')
+    exitSession = State('ExitSession')
+
+    # from -> to transition probabilities
+   
+    dd_transitionMatrix = {
+        'home':          { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.30 },
+        'content':       { 'home': 0.10, 'content': 0.40, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+        'clickbait':     { 'home': 0.10, 'content': 0.10, 'clickbait': 0.50, 'subscribe': 0.02, 'plusContent': 0.16, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+        'subscribe':     { 'home': 0.10, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.02, 'plusContent': 0.50, 'affiliateLink': 0.02, 'exitSession': 0.16 },
+        'plusContent':   { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.40, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+        'affiliateLink': { 'home': 0.20, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.00, 'plusContent': 0.05, 'affiliateLink': 0.00, 'exitSession': 0.55 }
+    }
+        
+    toHome = home.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
+    toContent = content.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
+    toClickbait = clickbait.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
+    toSubscribe = subscribe.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
+    toPlusContent = plusContent.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
+    toAffiliateLink = affiliateLink.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
+    toExitSession = exitSession.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
+
+    def on_enter_state(self, s):
+        logging.debug(f'Change - time now: {time.time()} entering state: {s}')
+        emit(self)
+
+    def on_exit_state(self, s):
+        logging.debug(f'Change - time now: {time.time()} exiting state: {s}')
+        emit(self)
+
+
+# Model of the shop with attributes
+
+class SessionModel(MachineMixin):
+    state_machine_name = 'SessionMachine'
+
+    def url(self):
+        return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
+
+    def advance(self):
+        newState = selectAttr(SessionMachine.dd_transitionMatrix[self.state])
+        logging.debug(f'advance(): from {self.state} to {newState}')
+        self.statemachine.run(newState)
+
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        super(SessionModel, self).__init__()
+
+    def __repr__(self):
+        return "{}({!r})".format(type(self).__name__, self.__dict__)
 
 # Output function - write to stdout as JSON, so it can be piped into Kafka
 
@@ -120,7 +141,7 @@ def main():
             logging.debug(f'--> Creating Session: id {sessionId}')
             salesAmount = random.uniform(10.0, 90.0);
             newSession = SessionModel(
-                state = 'landingPage',
+                state = 'home',
                 id = sessionId,
                 campaign = selectAttr(d_campaign),
                 channel = selectAttr(d_channel),
