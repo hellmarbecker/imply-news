@@ -2,12 +2,11 @@ import json
 import random
 import time
 import argparse, sys, logging
-# from statemachine import StateMachine, State
-# from statemachine.mixins import MachineMixin
-# from statemachine.exceptions import TransitionNotAllowed
-from .exceptions import InvalidStateException
+from faker import Faker
+from exceptions import InvalidStateException, InvalidTransitionException
 
 baseurl = "https://imply-news.com"
+fake = Faker()
 
 # Attribute selector dicts. Key is the attribute value, value is the probability of occurrence.
 # Probabilities must add up to 1.
@@ -17,6 +16,7 @@ d_campaign = { 'fb-1 Be Informed': 0.3, 'fb-2 US Election': 0.4, 'af-1 Latest Ne
 d_product = { 'yoga pants': 0.3, 'yoga mat': 0.4, 'ball': 0.3 }
 d_gender = { 'm': 0.5, 'w': 0.6 }
 d_age = { '18-25': 0.1, '26-35': 0.1, '36-50': 0.4, '51-60': 0.3, '61+': 0.1 }
+l_content = "News Comment World Business Sport Puzzle Law".split()
 
 # Attribute selector function
 
@@ -37,9 +37,11 @@ def selectAttr(d):
 
 States = [ 'home', 'initial', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
 
+# from -> to transition probabilities
+
 StateTransitionMatrix = {
     'home':          { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.30 },
-    'content':       { 'home': 0.10, 'content': 0.40, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+    'content':       { 'home': 0.15, 'content': 0.45, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.10 },
     'clickbait':     { 'home': 0.10, 'content': 0.10, 'clickbait': 0.50, 'subscribe': 0.02, 'plusContent': 0.16, 'affiliateLink': 0.02, 'exitSession': 0.10 },
     'subscribe':     { 'home': 0.10, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.02, 'plusContent': 0.50, 'affiliateLink': 0.02, 'exitSession': 0.16 },
     'plusContent':   { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.40, 'affiliateLink': 0.02, 'exitSession': 0.10 },
@@ -48,30 +50,13 @@ StateTransitionMatrix = {
 
 
 class Session:
-
-    home = State('Home', initial=True)
-    content = State('Content')
-    clickbait = State('Clickbait')
-    subscribe = State('Subscribe')
-    plusContent = State('PlusContent')
-    affiliateLink = State('AffiliateLink')
-    exitSession = State('ExitSession')
-
-    # from -> to transition probabilities
-   
         
-    toHome = home.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toContent = content.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toClickbait = clickbait.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toSubscribe = subscribe.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toPlusContent = plusContent.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toAffiliateLink = affiliateLink.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-    toExitSession = exitSession.from_(home, content, clickbait, subscribe, plusContent, affiliateLink)
-
-    def __init__(self, initialState, **kwargs):
-        if initialState not in States:
-            throw InvalidStateException()
-        self.initialState = initialState
+    def __init__(self, states, initialState, stateTransitionMatrix, **kwargs):
+        if initialState not in states:
+            raise InvalidStateException()
+        self.states = States
+        self.state = initialState
+        self.stateTransitionMatrix = StateTransitionMatrix
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -79,41 +64,34 @@ class Session:
         return "{}({!r})".format(type(self).__name__, self.__dict__)
 
     def advance(self):
-        newState = selectAttr(SessionMachine.dd_transitionMatrix[self.state])
+        newState = selectAttr(self.stateTransitionMatrix[self.state])
+        if newState is None:
+            raise InvalidTransitionException()
+        emit(self)
         logging.debug(f'advance(): from {self.state} to {newState}')
-        self.statemachine.run(newState)
+        self.state = newState
 
     def url(self):
         return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
-
-    def on_enter_state(self, s):
-        logging.debug(f'Change - time now: {time.time()} entering state: {s}')
-        emit(self)
-
-    def on_exit_state(self, s):
-        logging.debug(f'Change - time now: {time.time()} exiting state: {s}')
-        emit(self)
 
 
 # Output function - write to stdout as JSON, so it can be piped into Kafka
 
 def emit(s):
 
-    m = s.model
     emitRecord = {
         'timestamp' : time.time(),
-        'url' : m.url(),
-        'state' : m.state,
-        'id' : m.id,
-        'campaign' : m.campaign,
-        'channel' : m.channel,
-        'product' : m.product,
-        'gender' : m.gender,
-        'age' : m.age,
-        'amount' : round(m.amount, 2),
-        'profit' : round(m.profit, 2)
+        'url' : s.url(),
+        'state' : s.state,
+        'sid' : s.sid,
+        'campaign' : s.campaign,
+        'channel' : s.channel,
+        'contentId' : s.contentId,
+        'subContentId' : s.subContentId,
+        'gender' : s.gender,
+        'age' : s.age
     }
-    print(f'{m.id}|{json.dumps(emitRecord)}')
+    print(f'{s.sid}|{json.dumps(emitRecord)}')
 
 
 # --- Main entry point ---
@@ -141,29 +119,28 @@ def main():
             sessionId += 1
             logging.debug(f'--> Creating Session: id {sessionId}')
             salesAmount = random.uniform(10.0, 90.0);
-            newSession = SessionModel(
-                state = 'home',
-                id = sessionId,
+            newSession = Session(
+                States, 'home', StateTransitionMatrix,
+                sid = sessionId,
                 campaign = selectAttr(d_campaign),
                 channel = selectAttr(d_channel),
-                product = selectAttr(d_product),
+                contentId = random.choice(l_content),
+                subContentId = fake.text(20),
                 gender = selectAttr(d_gender),
-                age = selectAttr(d_age),
-                amount = salesAmount,
-                profit = salesAmount * random.uniform(0.02, 0.10)
+                age = selectAttr(d_age)
             )
             allSessions.append(newSession)
         # Pick one of the sessions
         try:
             thisSession = random.choice(allSessions)
-            logging.debug(f'--> Session id {thisSession.id}')
+            logging.debug(f'--> Session id {thisSession.sid}')
             logging.debug(thisSession)
             thisSession.advance()
         except IndexError:
             logging.debug('--> No sessions to choose from')
-        except TransitionNotAllowed:
+        except KeyError:
             # Here we end up when the session was in exit state
-            logging.debug(f'--> removing session id {thisSession.model.id}')
+            logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)
         time.sleep(random.uniform(0.2, 3.0))
         
