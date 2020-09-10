@@ -1,6 +1,6 @@
 # imply-shop
 
-## Data generator for clickstream/e-commerce
+## imply-shop: Data generator for clickstream/e-commerce
 
 Generates fake clickstream data for an online shop, simulating shoppers' sessions.
 
@@ -22,7 +22,7 @@ Successful completion of a purchase is indicated by reaching state `Payment`.
 
 Campaign attribution is achieved through the `campaign` (TODO: and `channel`) attributes.
 
-## Data output format
+### Data output format
 
 Data is output as key|value, where the key is the session ID and the value is the session state JSON. This is then piped into `kafkacat`.
 
@@ -30,6 +30,10 @@ Example of an output row:
 
     118|{"timestamp": 1599644882.312883, "url": "https://imply-shop.com/shopPage", "state": "shopPage", "id": 118, "campaign": "af-1 ball", "product": "yoga pants", "gender": "m", "age": "61+", "amount": 19.2, "profit": 1.21}
 
-## Implementation
+### Implementation
 
 State machine: see https://pypi.org/project/python-statemachine/
+
+## imply-news: Data generator for a publisher
+
+This simulates data for a news outlet. It has free and premium content, a subscribe page, clickbait (multi-page content), and affiliate outlinks.
