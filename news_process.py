@@ -102,8 +102,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', help='Enable debug logging', action='store_true')
     parser.add_argument('-q', '--quiet', help='Quiet mode (overrides Debug mode)', action='store_true')
+    parser.add_argument('-f', '--config', help='Configuration file for session state machine(s)', required=True)
     args = parser.parse_args()
 
+    config = args.config
     if args.debug:
         logLevel = logging.DEBUG
     if args.quiet:
