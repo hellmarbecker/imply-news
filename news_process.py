@@ -94,6 +94,15 @@ def emit(s):
     print(f'{s.sid}|{json.dumps(emitRecord)}')
 
 
+# Read configuration
+
+def readConfig(ifn):
+
+    with open(ifn, 'r') as f:
+        data = yaml.load(f, Loader=yaml.FullLoader)
+        print(data)
+
+
 # --- Main entry point ---
 
 def main():
@@ -105,7 +114,9 @@ def main():
     parser.add_argument('-f', '--config', help='Configuration file for session state machine(s)', required=True)
     args = parser.parse_args()
 
-    config = args.config
+    cfgfile = args.config
+    config = readConfig(cfgfile)
+
     if args.debug:
         logLevel = logging.DEBUG
     if args.quiet:
