@@ -37,3 +37,9 @@ State machine: see https://pypi.org/project/python-statemachine/
 ## imply-news: Data generator for a publisher
 
 This simulates data for a news outlet. It has free and premium content, a subscribe page, clickbait (multi-page content), and affiliate outlinks.
+
+The state machine is controlled by a transition matrix, this implementation does not use an external library.
+
+While the possible states are always the same, different transition matrices can exist (to model the compelling switching event.) The entire configuration is in YAML format and is held in `news_config.yaml`.
+
+The transition matrices are organized as a dictionary, there should be an entry with key `"default"`.
