@@ -100,8 +100,11 @@ def readConfig(ifn):
 
     with open(ifn, 'r') as f:
         data = yaml.load(f, Loader=yaml.FullLoader)
-        print(data)
-
+        print(data['default'])
+        print(data['after_fix'])
+        for k, v in data:
+            print(f'---{k}---')
+            print(v)
 
 # --- Main entry point ---
 
@@ -116,6 +119,7 @@ def main():
 
     cfgfile = args.config
     config = readConfig(cfgfile)
+    sys.exit(0)
 
     if args.debug:
         logLevel = logging.DEBUG
