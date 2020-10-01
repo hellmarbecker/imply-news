@@ -35,18 +35,18 @@ def selectAttr(d):
 
 # State transitions for the shop
 
-States = [ 'home', 'initial', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
+#States = [ 'home', 'initial', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
 
 # from -> to transition probabilities
 
-StateTransitionMatrix = {
-    'home':          { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.30 },
-    'content':       { 'home': 0.15, 'content': 0.45, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.10 },
-    'clickbait':     { 'home': 0.10, 'content': 0.10, 'clickbait': 0.50, 'subscribe': 0.02, 'plusContent': 0.16, 'affiliateLink': 0.02, 'exitSession': 0.10 },
-    'subscribe':     { 'home': 0.10, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.02, 'plusContent': 0.50, 'affiliateLink': 0.02, 'exitSession': 0.16 },
-    'plusContent':   { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.40, 'affiliateLink': 0.02, 'exitSession': 0.10 },
-    'affiliateLink': { 'home': 0.20, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.00, 'plusContent': 0.05, 'affiliateLink': 0.00, 'exitSession': 0.55 }
-}
+#StateTransitionMatrix = {
+#    'home':          { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.30 },
+#    'content':       { 'home': 0.15, 'content': 0.45, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+#    'clickbait':     { 'home': 0.10, 'content': 0.10, 'clickbait': 0.50, 'subscribe': 0.02, 'plusContent': 0.16, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+#    'subscribe':     { 'home': 0.10, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.02, 'plusContent': 0.50, 'affiliateLink': 0.02, 'exitSession': 0.16 },
+#    'plusContent':   { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.40, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+#    'affiliateLink': { 'home': 0.20, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.00, 'plusContent': 0.05, 'affiliateLink': 0.00, 'exitSession': 0.55 }
+#}
 
 
 class Session:
@@ -54,9 +54,9 @@ class Session:
     def __init__(self, states, initialState, stateTransitionMatrix, **kwargs):
         if initialState not in states:
             raise InvalidStateException()
-        self.states = States
+        self.states = states
         self.state = initialState
-        self.stateTransitionMatrix = StateTransitionMatrix
+        self.stateTransitionMatrix = stateTransitionMatrix
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -98,13 +98,11 @@ def emit(s):
 
 def readConfig(ifn):
 
+    logging.debug(f'reading config file {ifn}')
     with open(ifn, 'r') as f:
-        data = yaml.load(f, Loader=yaml.FullLoader)
-        print(data['default'])
-        print(data['after_fix'])
-        for k, v in data:
-            print(f'---{k}---')
-            print(v)
+        c = yaml.load(f, Loader=yaml.FullLoader)
+        return c
+
 
 # --- Main entry point ---
 
@@ -119,7 +117,7 @@ def main():
 
     cfgfile = args.config
     config = readConfig(cfgfile)
-    sys.exit(0)
+    selector = 'default'
 
     if args.debug:
         logLevel = logging.DEBUG
@@ -134,11 +132,14 @@ def main():
     while True:
         logging.debug('Top of loop')
         logging.debug(f'Total elements in list: {len(allSessions)}')
+        logging.debug(f'state selector: {selector}')
         # With a certain probability, create a new session
         if random.random() < 0.5:
             sessionId += 1
             logging.debug(f'--> Creating Session: id {sessionId}')
             salesAmount = random.uniform(10.0, 90.0);
+            States = config[selector]['States']
+            StateTransitionMatrix = config[selector]['StateTransitionMatrix']
             newSession = Session(
                 States, 'home', StateTransitionMatrix,
                 sid = sessionId,
