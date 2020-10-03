@@ -113,11 +113,12 @@ def main():
     parser.add_argument('-d', '--debug', help='Enable debug logging', action='store_true')
     parser.add_argument('-q', '--quiet', help='Quiet mode (overrides Debug mode)', action='store_true')
     parser.add_argument('-f', '--config', help='Configuration file for session state machine(s)', required=True)
+    parser.add_argument('-m', '--mode', help='Mode for session state machine(s)', default='default')
     args = parser.parse_args()
 
     cfgfile = args.config
     config = readConfig(cfgfile)
-    selector = 'default'
+    selector = args.mode
 
     if args.debug:
         logLevel = logging.DEBUG
