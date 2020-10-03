@@ -3,15 +3,15 @@
 # Based on code by ahadjidj
 
 BASE=~/imply-shop
-PID=/tmp/simulator.pid
+PID=/tmp/news_simulator.pid
 NORMAL=/tmp/normal.flag
 ABNORMAL=/tmp/abnormal.flag
-LOG=/tmp/simulator.log
-ERROR=/tmp/simulator-error.log
-CONFIG=simulator.config
-CMD=simulator.py
-COMMAND_NORMAL="python3 $BASE/$CMD $BASE/$CONFIG false"
-COMMAND_ABNORMAL="python3 $BASE/$CMD $BASE/$CONFIG true"
+LOG=/tmp/news_simulator.log
+ERROR=/tmp/news_simulator-error.log
+CONFIG=news_config.yml
+CMD=news_process.py
+COMMAND_NORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m default"
+COMMAND_ABNORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m after_fix"
 
 status() {
     echo
