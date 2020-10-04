@@ -2,6 +2,9 @@
 #
 # Based on code by ahadjidj
 
+# news_secret.sh must define the variables CC_APIKEY and CC_SECRET
+. ./news_secret.sh
+
 BASE=~/imply-shop
 PID=/tmp/news_simulator.pid
 NORMAL=/tmp/normal.flag
@@ -10,8 +13,12 @@ LOG=/tmp/news_simulator.log
 ERROR=/tmp/news_simulator-error.log
 CONFIG=news_config.yml
 CMD=news_process.py
-COMMAND_NORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m default"
+KAFKACAT_CC="kafkacat -t imply-news -b pkc-lq8v7.eu-central-1.aws.confluent.cloud:9092 -K \"|\" -X security.protocol=SASL_SSL -X sasl.mechanism=PLAIN -X sasl.username=${CC_APIKEY} -X sasl.password=${CC_SECRET}"
+COMMAND_NORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m default | "
 COMMAND_ABNORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m after_fix"
+
+echo $KAFKACAT_CC
+exit 0
 
 status() {
     echo
