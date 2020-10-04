@@ -2,10 +2,11 @@
 #
 # Based on code by ahadjidj
 
-# news_secret.sh must define the variables CC_BOOTSTRAP, CC_APIKEY and CC_SECRET
-. ./news_secret.sh
-
 BASE=~/imply-shop
+
+# news_secret.sh must define the variables CC_BOOTSTRAP, CC_APIKEY and CC_SECRET
+. ${BASE}/news_secret.sh
+
 PID=/tmp/news_simulator.pid
 NORMAL=/tmp/normal.flag
 ABNORMAL=/tmp/abnormal.flag
@@ -18,11 +19,8 @@ KAFKACAT_CC="kafkacat -t imply-news -b ${CC_BOOTSTRAP} -K \"|\" \
     -X sasl.mechanism=PLAIN \
     -X sasl.username=${CC_APIKEY} \
     -X sasl.password=${CC_SECRET}"
-COMMAND_NORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m default | "
-COMMAND_ABNORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m after_fix"
-
-echo $KAFKACAT_CC
-exit 0
+COMMAND_NORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m default | ${KAFKACAT_CC}"
+COMMAND_ABNORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m after_fix | ${KAFKACAT_CC}"
 
 status() {
     echo
