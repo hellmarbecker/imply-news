@@ -33,21 +33,7 @@ def selectAttr(d):
             break
     return sel
 
-# State transitions for the shop
-
-#States = [ 'home', 'initial', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
-
-# from -> to transition probabilities
-
-#StateTransitionMatrix = {
-#    'home':          { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.30 },
-#    'content':       { 'home': 0.15, 'content': 0.45, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.10 },
-#    'clickbait':     { 'home': 0.10, 'content': 0.10, 'clickbait': 0.50, 'subscribe': 0.02, 'plusContent': 0.16, 'affiliateLink': 0.02, 'exitSession': 0.10 },
-#    'subscribe':     { 'home': 0.10, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.02, 'plusContent': 0.50, 'affiliateLink': 0.02, 'exitSession': 0.16 },
-#    'plusContent':   { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.40, 'affiliateLink': 0.02, 'exitSession': 0.10 },
-#    'affiliateLink': { 'home': 0.20, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.00, 'plusContent': 0.05, 'affiliateLink': 0.00, 'exitSession': 0.55 }
-#}
-
+# Session model
 
 class Session:
         
@@ -74,7 +60,6 @@ class Session:
     def url(self):
         return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
 
-
 # Output function - write to stdout as JSON, so it can be piped into Kafka
 
 def emit(s):
@@ -92,7 +77,6 @@ def emit(s):
         'age' : s.age
     }
     print(f'{s.sid}|{json.dumps(emitRecord)}')
-
 
 # Read configuration
 
@@ -167,7 +151,7 @@ def main():
             # Here we end up when the session was in exit state
             logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)
-        time.sleep(random.uniform(0.01, 0.2))
+        time.sleep(random.uniform(0.001, 0.02))
         
 
 if __name__ == "__main__":

@@ -19,8 +19,8 @@ KAFKACAT_CC="kafkacat -t imply-news -b ${CC_BOOTSTRAP} -K \"|\" \
     -X sasl.mechanism=PLAIN \
     -X sasl.username=${CC_APIKEY} \
     -X sasl.password=${CC_SECRET}"
-COMMAND_NORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m default | ${KAFKACAT_CC}"
-COMMAND_ABNORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m after_fix | ${KAFKACAT_CC}"
+COMMAND_NORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m default"
+COMMAND_ABNORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m after_fix"
 
 status() {
     echo
@@ -68,7 +68,7 @@ start_normal() {
         then
             /bin/rm $ABNORMAL
         fi
-        if nohup $COMMAND_NORMAL >>$LOG 2>&1 &
+        if sh -c "$COMMAND_NORMAL 2>$LOG | ${KAFKACAT_CC}" &
         then echo $! >$PID
              echo "Done."
              echo "$(date '+%Y-%m-%d %X'): START" >>$LOG
@@ -92,7 +92,7 @@ start_abnormal() {
         then
             /bin/rm $NORMAL
         fi
-        if nohup $COMMAND_ABNORMAL >>$LOG 2>&1 &
+        if sh -c "$COMMAND_ABNORMAL 2>$LOG | ${KAFKACAT_CC}" &
         then echo $! >$PID
              echo "Done."
              echo "$(date '+%Y-%m-%d %X'): START" >>$LOG
@@ -130,7 +130,8 @@ stop() {
 
     if [ -f $PID ]
     then
-        if kill $( cat $PID )
+        # if kill $( cat $PID )
+        if ps auxww | grep ${CMD} | grep -v grep | cut -b 18-24 | xargs kill
         then echo "Done."
              echo "$(date '+%Y-%m-%d %X'): STOP" >>$LOG
         fi
