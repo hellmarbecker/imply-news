@@ -43,3 +43,17 @@ The state machine is controlled by a transition matrix, this implementation does
 While the possible states are always the same, different transition matrices can exist (to model the compelling switching event.) The entire configuration is in YAML format and is held in `news_config.yaml`.
 
 The transition matrices are organized as a dictionary, there should be an entry with key `"default"`.
+
+### Components of the news data generator
+
+`news_process.py`
+
+The generator script proper. It writes its result to standard output.
+
+`news_config.yml`
+
+State values and transition matrices
+
+`news_simulator.sh`
+
+Driver script, handles mode selection and sends the main script's output to `kafkacat`.
