@@ -44,6 +44,12 @@ While the possible states are always the same, different transition matrices can
 
 The transition matrices are organized as a dictionary, there should be an entry with key `"default"`.
 
+You need to create a file `news_secret.sh` in the main directory, and make it executable, which contains the bootstrap address and credentials for Confluent Cloud, like so:
+
+    export CC_BOOTSTRAP="<bootstrap server>"
+    export CC_APIKEY="<API Key>"
+    export CC_SECRET="<Secret>"
+
 ### Components of the news data generator
 
 `news_process.py`
@@ -57,3 +63,7 @@ State values and transition matrices
 `news_simulator.sh`
 
 Driver script, handles mode selection and sends the main script's output to `kafkacat`.
+
+`cube-imply-news.json`
+
+This is not strictly part of the project. It shows an example of a Pivot cube configuration with suggested dimensions and measures for the Imply News data set.
