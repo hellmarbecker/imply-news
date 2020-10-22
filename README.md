@@ -50,6 +50,8 @@ You need to create a file `news_secret.sh` in the main directory, and make it ex
     export CC_APIKEY="<API Key>"
     export CC_SECRET="<Secret>"
 
+You also need to have `kafkacat` installed.
+
 ### Components of the news data generator
 
 `news_process.py`
