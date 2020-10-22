@@ -14,11 +14,12 @@ LOG=/tmp/news_simulator.log
 ERROR=/tmp/news_simulator-error.log
 CONFIG=news_config.yml
 CMD=news_process.py
-KAFKACAT_CC="kafkacat -t imply-news -b ${CC_BOOTSTRAP} -K \"|\" \
-    -X security.protocol=SASL_SSL \
-    -X sasl.mechanism=PLAIN \
-    -X sasl.username=${CC_APIKEY} \
-    -X sasl.password=${CC_SECRET}"
+if [[ -v CC_APIKEY && -v CC_SECRET ]]; then
+    CC_SECURE="-X security.protocol=SASL_SSL -X sasl.mechanism=PLAIN -X sasl.username=${CC_APIKEY} -X sasl.password=${CC_SECRET}"
+else
+    CC_SECURE=""
+fi
+KAFKACAT_CMD="kafkacat -t imply-news -b ${CC_BOOTSTRAP} -K \"|\" ${CC_SECURE}"
 COMMAND_NORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m default"
 COMMAND_ABNORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m after_fix"
 
@@ -68,7 +69,7 @@ start_normal() {
         then
             /bin/rm $ABNORMAL
         fi
-        if sh -c "$COMMAND_NORMAL 2>$LOG | ${KAFKACAT_CC}" &
+        if sh -c "$COMMAND_NORMAL 2>$LOG | ${KAFKACAT_CMD}" &
         then echo $! >$PID
              echo "Done."
              echo "$(date '+%Y-%m-%d %X'): START" >>$LOG
@@ -92,7 +93,7 @@ start_abnormal() {
         then
             /bin/rm $NORMAL
         fi
-        if sh -c "$COMMAND_ABNORMAL 2>$LOG | ${KAFKACAT_CC}" &
+        if sh -c "$COMMAND_ABNORMAL 2>$LOG | ${KAFKACAT_CMD}" &
         then echo $! >$PID
              echo "Done."
              echo "$(date '+%Y-%m-%d %X'): START" >>$LOG
