@@ -49,8 +49,12 @@ You need to create a file `news_secret.sh` in the main directory, and make it ex
     export CC_BOOTSTRAP="<bootstrap server>"
     export CC_APIKEY="<API Key>"
     export CC_SECRET="<Secret>"
+    
+### Dependencies
 
-You also need to have `kafkacat` installed.
+You need to have `kafkacat` installed.
+
+Python: Requires the Faker module.
 
 ### Components of the news data generator
 
