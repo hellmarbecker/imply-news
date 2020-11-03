@@ -1,0 +1,28 @@
+# Customization for Imply 4 on my laptop
+manager:
+    resources:
+        requests:
+            cpu: 100m
+            memory: 500M
+druid:
+    metadataStore:
+        password: ""
+master:
+    replicaCount: 1
+    resources:
+        requests:
+            cpu: 100m
+            memory: 500M
+query:
+    replicaCount: 1
+    resources:
+        requests:
+            cpu: 250m
+            memory: 1200M
+dataTier1:
+    replicaCount: 2
+    resources:
+        requests:
+            cpu: 250m
+            memory: 1300M
+
