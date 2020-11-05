@@ -85,6 +85,7 @@ def readConfig(ifn):
     logging.debug(f'reading config file {ifn}')
     with open(ifn, 'r') as f:
         c = yaml.load(f, Loader=yaml.FullLoader)
+        logging.debug(f'Configuration: {c}')
         return c
 
 
@@ -100,16 +101,17 @@ def main():
     parser.add_argument('-m', '--mode', help='Mode for session state machine(s)', default='default')
     args = parser.parse_args()
 
-    cfgfile = args.config
-    config = readConfig(cfgfile)
-    selector = args.mode
-
     if args.debug:
         logLevel = logging.DEBUG
     if args.quiet:
         logLevel = logging.ERROR
 
     logging.basicConfig(level=logLevel)
+
+    cfgfile = args.config
+    config = readConfig(cfgfile)
+    # sys.exit(0)
+    selector = args.mode
 
     sessionId = 0
     allSessions = []
@@ -123,8 +125,8 @@ def main():
             sessionId += 1
             logging.debug(f'--> Creating Session: id {sessionId}')
             salesAmount = random.uniform(10.0, 90.0);
-            States = config[selector]['States']
-            StateTransitionMatrix = config[selector]['StateTransitionMatrix']
+            States = config['StateMachine']['States']
+            StateTransitionMatrix = config['StateMachine']['StateTransitionMatrix'][selector]
             newSession = Session(
                 States, 'home', StateTransitionMatrix,
                 sid = sessionId,
