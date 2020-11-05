@@ -42,6 +42,7 @@ class Session:
             raise InvalidStateException()
         self.states = states
         self.state = initialState
+        self.statesVisited = { initialState }
         self.stateTransitionMatrix = stateTransitionMatrix
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -53,21 +54,23 @@ class Session:
         newState = selectAttr(self.stateTransitionMatrix[self.state])
         if newState is None:
             raise InvalidTransitionException()
-        emit(self)
+        emitClick(self)
         logging.debug(f'advance(): from {self.state} to {newState}')
         self.state = newState
+        self.statesVisited.add(newState)
 
     def url(self):
         return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
 
 # Output function - write to stdout as JSON, so it can be piped into Kafka
 
-def emit(s):
+def emitClick(s):
 
     emitRecord = {
         'timestamp' : time.time(),
         'url' : s.url(),
         'state' : s.state,
+        'statesVisited' : str(s.statesVisited),
         'sid' : s.sid,
         'campaign' : s.campaign,
         'channel' : s.channel,
@@ -77,6 +80,17 @@ def emit(s):
         'age' : s.age
     }
     print(f'{s.sid}|{json.dumps(emitRecord)}')
+
+def emitSession(s):
+
+    emitRecord = {
+        'timestamp' : s.startTime,
+        'sid' : s.sid,
+        'campaign' : s.campaign,
+        'channel' : s.channel,
+        'gender' : s.gender,
+        'age' : s.age
+    }
 
 # Read configuration
 
