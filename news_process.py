@@ -40,6 +40,7 @@ class Session:
     def __init__(self, states, initialState, stateTransitionMatrix, **kwargs):
         if initialState not in states:
             raise InvalidStateException()
+        self.startTime = None # this is set upon the first advance() to match the first eventTime
         self.states = states
         self.state = initialState
         self.statesVisited = { initialState }
@@ -54,7 +55,10 @@ class Session:
         newState = selectAttr(self.stateTransitionMatrix[self.state])
         if newState is None:
             raise InvalidTransitionException()
-        emitClick(self)
+        self.eventTime = time.time()
+        if self.startTime is None:
+            self.startTime = self.eventTime
+#        emitClick(self)
         logging.debug(f'advance(): from {self.state} to {newState}')
         self.state = newState
         self.statesVisited.add(newState)
@@ -79,6 +83,7 @@ def emitClick(s):
         'gender' : s.gender,
         'age' : s.age
     }
+    # explode and pivot the states visited
     print(f'{s.sid}|{json.dumps(emitRecord)}')
 
 def emitSession(s):
@@ -91,6 +96,8 @@ def emitSession(s):
         'gender' : s.gender,
         'age' : s.age
     }
+    emitRecord.update( { t : (t in s.statesVisited) for t in s.states } )
+    print(f'{s.sid}|{json.dumps(emitRecord)}')
 
 # Read configuration
 
@@ -164,6 +171,7 @@ def main():
         except IndexError:
             logging.debug('--> No sessions to choose from')
         except KeyError:
+            emitSession(thisSession)
             # Here we end up when the session was in exit state
             logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)
