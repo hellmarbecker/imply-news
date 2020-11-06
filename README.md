@@ -52,9 +52,9 @@ You need to create a file `news_secret.sh` in the main directory, and make it ex
     
 ### Dependencies
 
-You need to have `kafkacat` installed.
-
-Python: Requires the Faker module.
+Python packages:
+- Faker
+- confluent_kafka
 
 ### Components of the news data generator
 
