@@ -3,7 +3,9 @@ import json
 import random
 import time
 import argparse, sys, logging
+import socket
 from faker import Faker
+from confluent_kafka import Producer
 from exceptions import InvalidStateException, InvalidTransitionException
 
 baseurl = "https://imply-news.com"
@@ -58,7 +60,6 @@ class Session:
         self.eventTime = time.time()
         if self.startTime is None:
             self.startTime = self.eventTime
-#        emitClick(self)
         logging.debug(f'advance(): from {self.state} to {newState}')
         self.state = newState
         self.statesVisited.add(newState)
@@ -66,9 +67,18 @@ class Session:
     def url(self):
         return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
 
-# Output function - write to stdout as JSON, so it can be piped into Kafka
+# Output function - write to Kafka, or to stdout as JSON
 
-def emitClick(s):
+def emit(p, t, e):
+
+    sid = e['sid']
+    if p is None:
+        print(f'{sid}|{json.dumps(e)}')
+    else:
+        print(f'{sid}|{json.dumps(e)}')
+        p.produce(t, key=str(sid), value=json.dumps(e))
+
+def emitClick(p, t, s):
 
     emitRecord = {
         'timestamp' : time.time(),
@@ -83,10 +93,9 @@ def emitClick(s):
         'gender' : s.gender,
         'age' : s.age
     }
-    # explode and pivot the states visited
-    print(f'{s.sid}|{json.dumps(emitRecord)}')
+    emit(p, t, emitRecord)
 
-def emitSession(s):
+def emitSession(p, t, s):
 
     emitRecord = {
         'timestamp' : s.startTime,
@@ -96,8 +105,9 @@ def emitSession(s):
         'gender' : s.gender,
         'age' : s.age
     }
+    # explode and pivot the states visited
     emitRecord.update( { t : (t in s.statesVisited) for t in s.states } )
-    print(f'{s.sid}|{json.dumps(emitRecord)}')
+    emit(p, t, emitRecord)
 
 # Read configuration
 
@@ -120,6 +130,7 @@ def main():
     parser.add_argument('-q', '--quiet', help='Quiet mode (overrides Debug mode)', action='store_true')
     parser.add_argument('-f', '--config', help='Configuration file for session state machine(s)', required=True)
     parser.add_argument('-m', '--mode', help='Mode for session state machine(s)', default='default')
+    parser.add_argument('-n', '--dry-run', help='Write to stdout instead of Kafka',  action='store_true')
     args = parser.parse_args()
 
     if args.debug:
@@ -133,6 +144,18 @@ def main():
     config = readConfig(cfgfile)
     # sys.exit(0)
     selector = args.mode
+
+    if args.dry_run:
+        producer = None
+        clickTopic = None
+        sessionTopic = None
+    else:
+        brokers = config['Kafka']['brokers']
+        clickTopic = config['Kafka']['clickTopic']
+        sessionTopic = config['Kafka']['sessionTopic']
+        kafkaconf = {'bootstrap.servers': brokers,'client.id': socket.gethostname()}
+        logging.debug(f'brokers: {brokers} clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
+        producer = Producer(kafkaconf)
 
     sessionId = 0
     allSessions = []
@@ -158,6 +181,7 @@ def main():
                 gender = selectAttr(d_gender),
                 age = selectAttr(d_age)
             )
+            emitClick(producer, clickTopic, newSession)
             allSessions.append(newSession)
         # Pick one of the sessions
         try:
@@ -165,13 +189,14 @@ def main():
             logging.debug(f'--> Session id {thisSession.sid}')
             logging.debug(thisSession)
             thisSession.advance()
+            emitClick(producer, clickTopic, thisSession)
             if not args.quiet:
                 sys.stderr.write('.')
                 sys.stderr.flush()
         except IndexError:
             logging.debug('--> No sessions to choose from')
         except KeyError:
-            emitSession(thisSession)
+            emitSession(producer, sessionTopic, thisSession)
             # Here we end up when the session was in exit state
             logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)

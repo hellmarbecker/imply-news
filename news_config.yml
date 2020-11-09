@@ -1,5 +1,7 @@
 Kafka:
-    bootstrap: '127.0.0.1:9092'
+    brokers: '34.209.28.189:9092'
+    clickTopic: "imply-news"
+    sessionTopic: "imply-news-sessions"
 StateMachine:
     States: [ 'home', 'initial', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
     # exitState: 'exitSession'
