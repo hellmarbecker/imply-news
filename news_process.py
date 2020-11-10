@@ -67,10 +67,9 @@ class Session:
     def url(self):
         return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
 
-# Output function - write to Kafka, or to stdout as JSON
+# Output functions - write to Kafka, or to stdout as JSON
 
 def emit(p, t, e):
-
     sid = e['sid']
     if p is None:
         print(f'{sid}|{json.dumps(e)}')
@@ -78,9 +77,9 @@ def emit(p, t, e):
         p.produce(t, key=str(sid), value=json.dumps(e))
 
 def emitClick(p, t, s):
-
     emitRecord = {
         'timestamp' : time.time(),
+        'recordType' : 'click',
         'url' : s.url(),
         'state' : s.state,
         'statesVisited' : str(s.statesVisited),
@@ -95,9 +94,9 @@ def emitClick(p, t, s):
     emit(p, t, emitRecord)
 
 def emitSession(p, t, s):
-
     emitRecord = {
         'timestamp' : s.startTime,
+        'recordType' : 'session',
         'sid' : s.sid,
         'campaign' : s.campaign,
         'channel' : s.channel,
@@ -111,7 +110,6 @@ def emitSession(p, t, s):
 # Read configuration
 
 def readConfig(ifn):
-
     logging.debug(f'reading config file {ifn}')
     with open(ifn, 'r') as f:
         c = yaml.load(f, Loader=yaml.FullLoader)
