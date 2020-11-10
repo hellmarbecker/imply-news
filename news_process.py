@@ -75,7 +75,6 @@ def emit(p, t, e):
     if p is None:
         print(f'{sid}|{json.dumps(e)}')
     else:
-        print(f'{sid}|{json.dumps(e)}')
         p.produce(t, key=str(sid), value=json.dumps(e))
 
 def emitClick(p, t, s):
@@ -182,6 +181,9 @@ def main():
                 age = selectAttr(d_age)
             )
             emitClick(producer, clickTopic, newSession)
+            if not args.quiet:
+                sys.stderr.write('.')
+                sys.stderr.flush()
             allSessions.append(newSession)
         # Pick one of the sessions
         try:
@@ -197,6 +199,9 @@ def main():
             logging.debug('--> No sessions to choose from')
         except KeyError:
             emitSession(producer, sessionTopic, thisSession)
+            if not args.quiet:
+                sys.stderr.write(':')
+                sys.stderr.flush()
             # Here we end up when the session was in exit state
             logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)
