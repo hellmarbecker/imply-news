@@ -1,11 +1,12 @@
 Kafka:
     brokers: '34.209.28.189:9092'
+    # clickTopic and sessionTopic can be the same
     clickTopic: "imply-news"
-    sessionTopic: "imply-news-sessions"
+    sessionTopic: "imply-news"
 StateMachine:
     States: [ 'home', 'initial', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
     # exitState: 'exitSession'
-    # -- no need to specify the ext state explicitly; any state that does not exist as a row key in the transition matrix is an exit state
+    # -- no need to specify the exit state explicitly; any state that does not exist as a row key in the transition matrix is an exit state
     StateTransitionMatrix:
         # Transition probabilities. For each mode there is a separate transition matrix. Probabilities in each row must add up to 1.
         default: {
