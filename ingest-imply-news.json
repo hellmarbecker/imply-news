@@ -1,0 +1,441 @@
+{
+  "type": "kafka",
+  "spec": {
+    "dataSchema": {
+      "dataSource": "imply-news",
+      "timestampSpec": {
+        "column": "timestamp",
+        "format": "posix",
+        "missingValue": null
+      },
+      "dimensionsSpec": {
+        "dimensions": [
+          {
+            "type": "string",
+            "name": "affiliateLink",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "age",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "campaign",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "channel",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "clickbait",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "content",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "contentId",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "exitSession",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "gender",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "home",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "initial",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "plusContent",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "recordType",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "sid",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "state",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "statesVisited",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "subContentId",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "subscribe",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "url",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          }
+        ],
+        "dimensionExclusions": [
+          "timestamp"
+        ]
+      },
+      "metricsSpec": [],
+      "granularitySpec": {
+        "type": "uniform",
+        "segmentGranularity": "HOUR",
+        "queryGranularity": {
+          "type": "none"
+        },
+        "rollup": false,
+        "intervals": null
+      },
+      "transformSpec": {
+        "filter": null,
+        "transforms": []
+      }
+    },
+    "ioConfig": {
+      "topic": "imply-news",
+      "inputFormat": {
+        "type": "json",
+        "flattenSpec": {
+          "useFieldDiscovery": true,
+          "fields": []
+        },
+        "featureSpec": {}
+      },
+      "replicas": 1,
+      "taskCount": 1,
+      "taskDuration": "PT3600S",
+      "consumerProperties": {
+        "bootstrap.servers": "34.209.28.189:9092"
+      },
+      "pollTimeout": 100,
+      "startDelay": "PT5S",
+      "period": "PT30S",
+      "useEarliestOffset": true,
+      "completionTimeout": "PT1800S",
+      "lateMessageRejectionPeriod": null,
+      "earlyMessageRejectionPeriod": null,
+      "lateMessageRejectionStartDateTime": null,
+      "stream": "imply-news",
+      "useEarliestSequenceNumber": true
+    },
+    "tuningConfig": {
+      "type": "kafka",
+      "maxRowsInMemory": 1000000,
+      "maxBytesInMemory": 0,
+      "maxRowsPerSegment": 5000000,
+      "maxTotalRows": null,
+      "intermediatePersistPeriod": "PT10M",
+      "basePersistDirectory": "/mnt/tmp/druid-realtime-persist5627959277173294691",
+      "maxPendingPersists": 0,
+      "indexSpec": {
+        "bitmap": {
+          "type": "roaring",
+          "compressRunOnSerialization": true
+        },
+        "dimensionCompression": "lz4",
+        "metricCompression": "lz4",
+        "longEncoding": "longs",
+        "segmentLoader": null
+      },
+      "indexSpecForIntermediatePersists": {
+        "bitmap": {
+          "type": "roaring",
+          "compressRunOnSerialization": true
+        },
+        "dimensionCompression": "lz4",
+        "metricCompression": "lz4",
+        "longEncoding": "longs",
+        "segmentLoader": null
+      },
+      "buildV9Directly": true,
+      "reportParseExceptions": false,
+      "handoffConditionTimeout": 0,
+      "resetOffsetAutomatically": false,
+      "segmentWriteOutMediumFactory": null,
+      "workerThreads": null,
+      "chatThreads": null,
+      "chatRetries": 8,
+      "httpTimeout": "PT10S",
+      "shutdownTimeout": "PT80S",
+      "offsetFetchPeriod": "PT30S",
+      "intermediateHandoffPeriod": "P2147483647D",
+      "logParseExceptions": false,
+      "maxParseExceptions": 2147483647,
+      "maxSavedParseExceptions": 0,
+      "skipSequenceNumberAvailabilityCheck": false,
+      "repartitionTransitionDuration": "PT120S"
+    }
+  },
+  "dataSchema": {
+    "dataSource": "imply-news",
+    "timestampSpec": {
+      "column": "timestamp",
+      "format": "posix",
+      "missingValue": null
+    },
+    "dimensionsSpec": {
+      "dimensions": [
+        {
+          "type": "string",
+          "name": "affiliateLink",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "age",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "campaign",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "channel",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "clickbait",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "content",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "contentId",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "exitSession",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "gender",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "home",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "initial",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "plusContent",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "recordType",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "sid",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "state",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "statesVisited",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "subContentId",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "subscribe",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        },
+        {
+          "type": "string",
+          "name": "url",
+          "multiValueHandling": "SORTED_ARRAY",
+          "createBitmapIndex": true
+        }
+      ],
+      "dimensionExclusions": [
+        "timestamp"
+      ]
+    },
+    "metricsSpec": [],
+    "granularitySpec": {
+      "type": "uniform",
+      "segmentGranularity": "HOUR",
+      "queryGranularity": {
+        "type": "none"
+      },
+      "rollup": false,
+      "intervals": null
+    },
+    "transformSpec": {
+      "filter": null,
+      "transforms": []
+    }
+  },
+  "tuningConfig": {
+    "type": "kafka",
+    "maxRowsInMemory": 1000000,
+    "maxBytesInMemory": 0,
+    "maxRowsPerSegment": 5000000,
+    "maxTotalRows": null,
+    "intermediatePersistPeriod": "PT10M",
+    "basePersistDirectory": "/mnt/tmp/druid-realtime-persist5627959277173294691",
+    "maxPendingPersists": 0,
+    "indexSpec": {
+      "bitmap": {
+        "type": "roaring",
+        "compressRunOnSerialization": true
+      },
+      "dimensionCompression": "lz4",
+      "metricCompression": "lz4",
+      "longEncoding": "longs",
+      "segmentLoader": null
+    },
+    "indexSpecForIntermediatePersists": {
+      "bitmap": {
+        "type": "roaring",
+        "compressRunOnSerialization": true
+      },
+      "dimensionCompression": "lz4",
+      "metricCompression": "lz4",
+      "longEncoding": "longs",
+      "segmentLoader": null
+    },
+    "buildV9Directly": true,
+    "reportParseExceptions": false,
+    "handoffConditionTimeout": 0,
+    "resetOffsetAutomatically": false,
+    "segmentWriteOutMediumFactory": null,
+    "workerThreads": null,
+    "chatThreads": null,
+    "chatRetries": 8,
+    "httpTimeout": "PT10S",
+    "shutdownTimeout": "PT80S",
+    "offsetFetchPeriod": "PT30S",
+    "intermediateHandoffPeriod": "P2147483647D",
+    "logParseExceptions": false,
+    "maxParseExceptions": 2147483647,
+    "maxSavedParseExceptions": 0,
+    "skipSequenceNumberAvailabilityCheck": false,
+    "repartitionTransitionDuration": "PT120S"
+  },
+  "ioConfig": {
+    "topic": "imply-news",
+    "inputFormat": {
+      "type": "json",
+      "flattenSpec": {
+        "useFieldDiscovery": true,
+        "fields": []
+      },
+      "featureSpec": {}
+    },
+    "replicas": 1,
+    "taskCount": 1,
+    "taskDuration": "PT3600S",
+    "consumerProperties": {
+      "bootstrap.servers": "34.209.28.189:9092"
+    },
+    "pollTimeout": 100,
+    "startDelay": "PT5S",
+    "period": "PT30S",
+    "useEarliestOffset": true,
+    "completionTimeout": "PT1800S",
+    "lateMessageRejectionPeriod": null,
+    "earlyMessageRejectionPeriod": null,
+    "lateMessageRejectionStartDateTime": null,
+    "stream": "imply-news",
+    "useEarliestSequenceNumber": true
+  },
+  "context": null,
+  "suspended": false
+}
