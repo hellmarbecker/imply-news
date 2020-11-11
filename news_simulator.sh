@@ -10,8 +10,8 @@ LOG=/tmp/news_simulator.log
 ERROR=/tmp/news_simulator-error.log
 CONFIG=news_config.yml
 CMD=news_process.py
-COMMAND_NORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m default"
-COMMAND_ABNORMAL="python3 $BASE/$CMD -f $BASE/$CONFIG -m after_fix"
+COMMAND_NORMAL="python3 $BASE/$CMD -q -f $BASE/$CONFIG -m default"
+COMMAND_ABNORMAL="python3 $BASE/$CMD -q -f $BASE/$CONFIG -m after_fix"
 
 status() {
     echo
