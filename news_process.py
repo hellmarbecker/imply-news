@@ -75,6 +75,7 @@ def emit(p, t, e):
         print(f'{sid}|{json.dumps(e)}')
     else:
         p.produce(t, key=str(sid), value=json.dumps(e))
+        p.poll(0)
 
 def emitClick(p, t, s):
     emitRecord = {
