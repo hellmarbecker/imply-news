@@ -10,8 +10,7 @@ LOG=/tmp/news_simulator.log
 ERROR=/tmp/news_simulator-error.log
 CONFIG=news_config.yml
 CMD=news_process.py
-COMMAND_NORMAL="python3 $BASE/$CMD -q -f $BASE/$CONFIG -m default"
-COMMAND_ABNORMAL="python3 $BASE/$CMD -q -f $BASE/$CONFIG -m after_fix"
+OPTSTRING="d" # cmd options
 
 status() {
     echo
@@ -157,6 +156,23 @@ switch() {
         echo "You need to run the simulator before switching"
     fi
 }
+
+FLAGS="-q"
+while getopts ${OPTSTRING} arg; do
+    case "${arg}" in
+        d)
+            # debug mode
+            FLAGS="-d"
+            ;;
+        *)
+            echo "Unknown option: -${OPTARG}"
+            exit 2
+            ;;
+    esac
+done
+
+COMMAND_NORMAL="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG -m default"
+COMMAND_ABNORMAL="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG -m after_fix"
 
 case "$1" in
     'start')
