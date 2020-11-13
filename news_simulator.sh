@@ -170,9 +170,13 @@ while getopts ${OPTSTRING} arg; do
             ;;
     esac
 done
+shift $((OPTIND -1))
 
 COMMAND_NORMAL="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG -m default"
 COMMAND_ABNORMAL="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG -m after_fix"
+# echo $COMMAND_NORMAL
+# echo "$1"
+# exit 1
 
 case "$1" in
     'start')
