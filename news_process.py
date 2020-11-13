@@ -136,7 +136,7 @@ def main():
     if args.quiet:
         logLevel = logging.ERROR
 
-    logging.basicConfig(level=logLevel)
+    logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=logLevel)
 
     cfgfile = args.config
     config = readConfig(cfgfile)
