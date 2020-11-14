@@ -1,3 +1,5 @@
+General:
+    maxSessions: 50000
 Kafka:
     brokers: '34.209.28.189:9092'
     # clickTopic and sessionTopic can be the same

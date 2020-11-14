@@ -155,6 +155,9 @@ def main():
         logging.debug(f'brokers: {brokers} clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
         producer = Producer(kafkaconf)
 
+    maxSessions = config['General']['maxSessions']
+    if maxSessions is None:
+        maxSessions = 50000
     sessionId = 0
     allSessions = []
 
@@ -163,7 +166,7 @@ def main():
         logging.debug(f'Total elements in list: {len(allSessions)}')
         logging.debug(f'state selector: {selector}')
         # With a certain probability, create a new session
-        if random.random() < 0.5:
+        if random.random() < 0.5 and len(allSessions) < maxSessions:
             sessionId += 1
             logging.debug(f'--> Creating Session: id {sessionId}')
             salesAmount = random.uniform(10.0, 90.0);
