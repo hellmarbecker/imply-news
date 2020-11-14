@@ -60,7 +60,7 @@ Python packages:
 
 `news_process.py`
 
-The generator script proper. It writes its result to standard output.
+The generator script proper. It writes its result to Kafka, or in developer mode to standard output.
 
 `news_config.yml`
 
@@ -68,7 +68,7 @@ State values and transition matrices
 
 `news_simulator.sh`
 
-Driver script, handles mode selection and sends the main script's output to `kafkacat`.
+Driver script, handles mode selection.
 
 `cube-imply-news.json`
 
