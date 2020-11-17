@@ -16,7 +16,7 @@ fake = Faker()
 
 d_channel = { 'social media': 0.3, 'organic search': 0.2, 'paid search': 0.3, 'display': 0.1, 'affiliate': 0.1 } 
 d_campaign = { 'fb-1 Be Informed': 0.3, 'fb-2 US Election': 0.4, 'af-1 Latest News': 0.2, 'google-1 Be Informed': 0.1 }
-d_gender = { 'm': 0.5, 'w': 0.6 }
+d_gender = { 'm': 0.5, 'w': 0.5 }
 d_age = { '18-25': 0.1, '26-35': 0.1, '36-50': 0.4, '51-60': 0.3, '61+': 0.1 }
 l_content = "News Comment World Business Sport Puzzle Law".split()
 
@@ -69,13 +69,13 @@ class Session:
 
 # Output functions - write to Kafka, or to stdout as JSON
 
-def emit(p, t, e):
-    sid = e['sid']
-    if p is None:
-        print(f'{sid}|{json.dumps(e)}')
+def emit(producer, topic, emitRecord):
+    sid = emitRecord['sid']
+    if producer is None:
+        print(f'{sid}|{json.dumps(emitRecord)}')
     else:
-        p.produce(t, key=str(sid), value=json.dumps(e))
-        p.poll(0)
+        producer.produce(topic, key=str(sid), value=json.dumps(emitRecord))
+        producer.poll(0)
 
 def emitClick(p, t, s):
     emitRecord = {
@@ -173,7 +173,7 @@ def main():
             States = config['StateMachine']['States']
             StateTransitionMatrix = config['StateMachine']['StateTransitionMatrix'][selector]
             newSession = Session(
-                States, 'home', StateTransitionMatrix,
+                States, States[0], StateTransitionMatrix,
                 sid = sessionId,
                 campaign = selectAttr(d_campaign),
                 channel = selectAttr(d_channel),
