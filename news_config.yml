@@ -1,4 +1,5 @@
 General:
+    # Maximum number of sessions that can be open in the simulator at the same time
     maxSessions: 50000
 Kafka:
     brokers: '34.209.28.189:9092'
