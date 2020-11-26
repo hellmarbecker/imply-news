@@ -155,11 +155,12 @@ def main():
         clickTopic = None
         sessionTopic = None
     else:
-        brokers = config['Kafka']['brokers']
-        clickTopic = config['Kafka']['clickTopic']
-        sessionTopic = config['Kafka']['sessionTopic']
-        kafkaconf = {'bootstrap.servers': brokers,'client.id': socket.gethostname()}
-        logging.debug(f'brokers: {brokers} clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
+        clickTopic = config['General']['clickTopic']
+        sessionTopic = config['General']['sessionTopic']
+        logging.debug(f'clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
+        kafkaconf = config['Kafka']
+        kafkaconf['client.id'] = socket.gethostname()
+        logging.debug(f'Kafka client configuration: {kafkaconf}')
         producer = Producer(kafkaconf)
 
     maxSessions = config['General']['maxSessions']
