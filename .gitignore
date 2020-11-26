@@ -131,3 +131,4 @@ dmypy.json
 # Secrets file for this project
 news_secret.sh
 nohup.out
+news_secret.yml

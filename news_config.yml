@@ -1,11 +1,15 @@
+# Try to include optional files. Any settings in these files override the main settings.
+IncludeOptional:
+    # Secure Kafka settings
+    - news_secret.yml
 General:
     # Maximum number of sessions that can be open in the simulator at the same time
     maxSessions: 50000
-Kafka:
-    brokers: '34.209.28.189:9092'
     # clickTopic and sessionTopic can be the same
     clickTopic: "imply-news"
     sessionTopic: "imply-news"
+Kafka:
+    bootstrap.servers: '34.209.28.189:9092'
 StateMachine:
     States: [ 'home', 'initial', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
     # exitState: 'exitSession'
