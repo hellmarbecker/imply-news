@@ -1,4 +1,5 @@
-Includes:
+# Try to include optional files. Any settings in these files override the main settings.
+IncludeOptional:
     # Secure Kafka settings
     - news_secret.yml
 General:

@@ -113,9 +113,16 @@ def emitSession(p, t, s):
 def readConfig(ifn):
     logging.debug(f'reading config file {ifn}')
     with open(ifn, 'r') as f:
-        c = yaml.load(f, Loader=yaml.FullLoader)
-        logging.debug(f'Configuration: {c}')
-        return c
+        cfg = yaml.load(f, Loader=yaml.FullLoader)
+        # get include files if present
+        for inc in cfg.get("IncludeOptional", []):
+            try:
+                logging.debug(f'reading include file {inc}')
+                cfg.update(yaml.load(open(inc), Loader=yaml.FullLoader))
+            except FileNotFoundError:
+                logging.debug(f'optional include file {inc} not found, continuing')
+        logging.debug(f'Configuration: {cfg}')
+        return cfg
 
 
 # --- Main entry point ---
