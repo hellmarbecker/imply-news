@@ -108,6 +108,29 @@ def emitSession(p, t, s):
     emitRecord.update( { t : (t in s.statesVisited) for t in s.states } )
     emit(p, t, emitRecord)
 
+# Check configuration
+
+def checkConfig(cfg):
+    eps = 0.0001
+    states = set(cfg['StateMachine']['States'])
+    modes = cfg['StateMachine']['StateTransitionMatrix']
+    logging.debug(f"Transition Matrix: {modes}")
+    logging.debug(f"Transition Matrix: {modes.items()}")
+    for mode in modes.keys():
+        for originState, transitions in modes[mode].items():
+            # is the origin state in the list?
+            if originState not in states:
+                logging.debug(f'Mode {mode}: originState {originState} does not exist')
+                raise Exception
+            # do the target states match the main states list?
+            if set(transitions.keys()) != states:
+                logging.debug(f'Mode {mode} originState {originState}: transitions do not match state list')
+                raise Exception
+            # are the probabilities okay?
+            if abs(sum(transitions.values()) - 1.0) > eps:
+                logging.debug(f'Mode {mode} originState {originState}: transition probabilities do not add up to 1')
+                raise Exception
+
 # Read configuration
 
 def readConfig(ifn):
@@ -122,6 +145,7 @@ def readConfig(ifn):
             except FileNotFoundError:
                 logging.debug(f'optional include file {inc} not found, continuing')
         logging.debug(f'Configuration: {cfg}')
+        checkConfig(cfg)
         return cfg
 
 

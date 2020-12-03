@@ -11,7 +11,7 @@ General:
 Kafka:
     bootstrap.servers: '34.209.28.189:9092'
 StateMachine:
-    States: [ 'home', 'initial', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
+    States: [ 'home', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
     # exitState: 'exitSession'
     # -- no need to specify the exit state explicitly; any state that does not exist as a row key in the transition matrix is an exit state
     StateTransitionMatrix:
