@@ -132,3 +132,4 @@ dmypy.json
 news_secret.sh
 nohup.out
 news_secret.yml
+cc_jaas.conf
