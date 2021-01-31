@@ -44,11 +44,16 @@ While the possible states are always the same, different transition matrices can
 
 The transition matrices are organized as a dictionary, there should be an entry with key `"default"`.
 
-You need to create a file `news_secret.sh` in the main directory, and make it executable, which contains the bootstrap address and credentials for Confluent Cloud, like so:
+For secure Kafka (Confluent Cloud), you should to create a file `news_secret.yml` in the main directory, which contains the bootstrap address and credentials for Confluent Cloud, like so:
 
-    export CC_BOOTSTRAP="<bootstrap server>"
-    export CC_APIKEY="<API Key>"
-    export CC_SECRET="<Secret>"
+    Kafka:
+        bootstrap.servers: "<bootstrap server>"
+        security.protocol: "SASL_SSL"
+        sasl.mechanisms: "PLAIN"
+        sasl.username: "<API Key>"
+        sasl.password: "<Secret>"
+        
+This file is automatically included if it is present. Do not check secrets into Github.
     
 ### Dependencies
 
