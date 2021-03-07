@@ -5,9 +5,11 @@ use warnings;
 
 use Fcntl qw(:seek);
 use Time::HiRes qw(usleep);
+
+use Log::Log4perl ();
+use Log::Log4perl::Level ();
 use Data::Dumper;
 use Date::Manip qw(ParseDate UnixDate DateCalc);
-# use JSON;
 
 
 sub incDate($$) {
@@ -15,6 +17,8 @@ sub incDate($$) {
     $_[0] = UnixDate(DateCalc($origDate, "+ $_[1] days"), "%Y-%m-%d");
 } # incDate
 
+Log::Log4perl->easy_init(Log::Log4perl::Level::to_priority('INFO'));
+my $logger = Log::Log4perl->get_logger();
 
 open INFILE, "<$ARGV[0]" or die "Could not open input file $ARGV[0]";
 
@@ -27,7 +31,7 @@ my %fieldPositions = map { $fields[$_] => $_ } (0 .. $#fields);
 my $runDay = 0; # replay loop index
 
 do {
-    print STDERR "loop index: $runDay\n";
+    $logger->info("loop index: $runDay");
 
     while (<INFILE>) {
         chomp;
