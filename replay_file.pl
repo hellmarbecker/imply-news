@@ -19,6 +19,24 @@ sub incDate($$) {
     $_[0] = UnixDate(DateCalc($origDate, "+ $_[1] days"), "%Y-%m-%d");
 } # incDate
 #-------------------------------------------------------------------------------
+sub produceMessage($$$) {
+    my($producer, $topic, $message) = @_;
+    my $condvar = AnyEvent->condvar;
+    $producer->produce(
+        payload => $message,
+        topic   => $topic,
+    )->then(sub {
+        my $delivery_report = shift;
+        $condvar->send;
+        print "Message successfully delivered with offset " . $delivery_report->{offset};
+    }, sub {
+        my $error = shift;
+        $condvar->send;
+        die "Unable to produce a message: " . $error->{error} . ", code: " . $error->{code};
+    });
+    $condvar->recv;
+} # produceMessage
+#-------------------------------------------------------------------------------
 
 # Set up logging
 
@@ -27,14 +45,16 @@ my $logger = Log::Log4perl->get_logger();
 
 # Kafka topic and producer properties
 # General->topic
-# Kafka->prpoperties in the usual format
+# Kafka->properties in the usual format
 
 my $cfgfile;
 GetOptions(
     "config|f=s" => \$cfgfile,
+    "dry-run|n"  => \$dryRun,
 );
 my $config = LoadFile($cfgfile);
 
+my $producer = Net::Kafka::Producer::new(%{$config{Kafka}}) unless $dry_run;
 # Input file
 
 open INFILE, "<$ARGV[0]" or die "Could not open input file $ARGV[0]";
@@ -65,7 +85,11 @@ do {
         incDate($line{DDGEP}, $runDay);
 
         my $csv = join(",", @line{@fields});
-        print "$csv\n";
+        if ($dry_run) {
+            print "$csv\n";
+        } else
+            produce($producer, $topic, $csv);
+        }
         usleep(2000);
     }
     $runDay++;
