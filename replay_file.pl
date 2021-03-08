@@ -24,10 +24,11 @@ sub incDate($$) { # increment by n days
     $_[0] = UnixDate(DateCalc($origDate, "+ $_[1] days"), "%Y-%m-%d");
 } # incDate
 #-------------------------------------------------------------------------------
-sub incTime($) { # increment by random interval up to 1 hour
-    my $origDate = ParseDate($_[0]);
+sub incTime($$) { # increment by random interval up to 1 hour
+    my $origDate = ParseDate(join(" ", @_));
     my $minutes = rand(60);
-    $_[0] = UnixDate(DateCalc($origDate, "+ $minutes minutes"), "%Y-%m-%d");
+    my $newDate = UnixDate(DateCalc($origDate, "+ $minutes minutes"), "%Y-%m-%d %H:%M:%S");
+    ($_[0], $_[1]) = split(/ /, $newDate);
 } # incTime
 #-------------------------------------------------------------------------------
 sub produceMessage($$$) {
@@ -54,13 +55,14 @@ sub produceMessage($$$) {
 # Kafka->properties in the usual format
 
 my $cfgfile;
+my $dryRun = 0;
 GetOptions(
     "config|f=s" => \$cfgfile,
     "dry-run|n"  => \$dryRun,
 );
 my $config = LoadFile($cfgfile);
 
-my $producer = Net::Kafka::Producer::new(%{$config->{Kafka}}) unless $dry_run;
+my $producer = Net::Kafka::Producer::new(%{$config->{Kafka}}) unless $dryRun;
 my $newTopic = $config->{General}->{newTopic};
 my $cancellationTopic = $config->{General}->{cancellationTopic};
 my $cancelProbability = $config->{General}->{cancelProbability};
@@ -94,19 +96,19 @@ do {
         incDate($line{DDGEP}, $runDay);
 
         my $csv = join(",", @line{@fields});
-        if ($dry_run) {
-            print "$csv\n";
-        } else
+        if ($dryRun) {
+            print "    $csv\n";
+        } else {
             produce($producer, $newTopic, $csv);
         }
-        if (rand < $cancelProbability) { # create cancellation
+        if (rand() < $cancelProbability) { # create cancellation
             my %cancelLine = %line;
             $cancelLine{CTTU} = 2;
-            incTime($cancelLine{DCTE});
-            my $ccsv = join(",", @line{@fields});
-            if ($dry_run) {
-                print "$ccsv\n";
-            } else
+            incTime($cancelLine{DCTE}, $cancelLine{HRTE});
+            my $ccsv = join(",", @cancelLine{@fields});
+            if ($dryRun) {
+                print "CANCELLATION: $ccsv\n";
+            } else {
                 produce($producer, $cancellationTopic, $ccsv);
             }
         }

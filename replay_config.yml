@@ -4,7 +4,8 @@ IncludeOptional:
     # Secure Kafka settings
     - news_secret.yml
 General:
-    # topice can be the same
+    cancelProbability: 0.2
+    # topics can be the same
     newTopic: "bets-new"
     cancellationTopic: "bets-cancellations"
 Kafka:
