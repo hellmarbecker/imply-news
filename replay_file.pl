@@ -11,7 +11,8 @@ use Getopt::Long;
 use YAML::XS qw(LoadFile);
 use Data::Dumper;
 use Date::Manip qw(ParseDate UnixDate DateCalc);
-use Net::Kafka;
+use Net::Kafka::Producer;
+use AnyEvent;
 
 # Set up logging
 
@@ -40,11 +41,11 @@ sub produceMessage($$$) {
     )->then(sub {
         my $delivery_report = shift;
         $condvar->send;
-        logger->info("Message successfully delivered with offset " . $delivery_report->{offset});
+        $logger->info("Message successfully delivered with offset " . $delivery_report->{offset});
     }, sub {
         my $error = shift;
         $condvar->send;
-        logger->error("Unable to produce a message: " . $error->{error} . ", code: " . $error->{code});
+        $logger->error("Unable to produce a message: " . $error->{error} . ", code: " . $error->{code});
     });
     $condvar->recv;
 } # produceMessage
@@ -62,7 +63,9 @@ GetOptions(
 );
 my $config = LoadFile($cfgfile);
 
-my $producer = Net::Kafka::Producer::new(%{$config->{Kafka}}) unless $dryRun;
+$logger->info(Dumper($config->{Kafka}));
+
+my $producer = Net::Kafka::Producer->new(%{$config->{Kafka}}) unless $dryRun;
 my $newTopic = $config->{General}->{newTopic};
 my $cancellationTopic = $config->{General}->{cancellationTopic};
 my $cancelProbability = $config->{General}->{cancelProbability};
@@ -99,7 +102,7 @@ do {
         if ($dryRun) {
             print "    $csv\n";
         } else {
-            produce($producer, $newTopic, $csv);
+            produceMessage($producer, $newTopic, $csv);
         }
         if (rand() < $cancelProbability) { # create cancellation
             my %cancelLine = %line;
@@ -109,7 +112,7 @@ do {
             if ($dryRun) {
                 print "CANCELLATION: $ccsv\n";
             } else {
-                produce($producer, $cancellationTopic, $ccsv);
+                produceMessage($producer, $cancellationTopic, $ccsv);
             }
         }
         usleep(2000);
