@@ -103,7 +103,7 @@ do {
         }
         if (rand() < $cancelProbability) { # create cancellation
             my %cancelLine = %line;
-            $cancelLine{CTTU} = 2;
+            $cancelLine{CTTE} = 2;
             incTime($cancelLine{DCTE}, $cancelLine{HRTE});
             my $ccsv = join(",", @cancelLine{@fields});
             if ($dryRun) {
