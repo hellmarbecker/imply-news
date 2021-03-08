@@ -13,11 +13,22 @@ use Data::Dumper;
 use Date::Manip qw(ParseDate UnixDate DateCalc);
 use Net::Kafka;
 
+# Set up logging
+
+Log::Log4perl->easy_init(Log::Log4perl::Level::to_priority('INFO'));
+my $logger = Log::Log4perl->get_logger();
+
 #-------------------------------------------------------------------------------
-sub incDate($$) {
+sub incDate($$) { # increment by n days
     my $origDate = ParseDate($_[0]);
     $_[0] = UnixDate(DateCalc($origDate, "+ $_[1] days"), "%Y-%m-%d");
 } # incDate
+#-------------------------------------------------------------------------------
+sub incTime($) { # increment by random interval up to 1 hour
+    my $origDate = ParseDate($_[0]);
+    my $minutes = rand(60);
+    $_[0] = UnixDate(DateCalc($origDate, "+ $minutes minutes"), "%Y-%m-%d");
+} # incTime
 #-------------------------------------------------------------------------------
 sub produceMessage($$$) {
     my($producer, $topic, $message) = @_;
@@ -28,20 +39,15 @@ sub produceMessage($$$) {
     )->then(sub {
         my $delivery_report = shift;
         $condvar->send;
-        print "Message successfully delivered with offset " . $delivery_report->{offset};
+        logger->info("Message successfully delivered with offset " . $delivery_report->{offset});
     }, sub {
         my $error = shift;
         $condvar->send;
-        die "Unable to produce a message: " . $error->{error} . ", code: " . $error->{code};
+        logger->error("Unable to produce a message: " . $error->{error} . ", code: " . $error->{code});
     });
     $condvar->recv;
 } # produceMessage
 #-------------------------------------------------------------------------------
-
-# Set up logging
-
-Log::Log4perl->easy_init(Log::Log4perl::Level::to_priority('INFO'));
-my $logger = Log::Log4perl->get_logger();
 
 # Kafka topic and producer properties
 # General->topic
@@ -54,7 +60,10 @@ GetOptions(
 );
 my $config = LoadFile($cfgfile);
 
-my $producer = Net::Kafka::Producer::new(%{$config{Kafka}}) unless $dry_run;
+my $producer = Net::Kafka::Producer::new(%{$config->{Kafka}}) unless $dry_run;
+my $newTopic = $config->{General}->{newTopic};
+my $cancellationTopic = $config->{General}->{cancellationTopic};
+my $cancelProbability = $config->{General}->{cancelProbability};
 # Input file
 
 open INFILE, "<$ARGV[0]" or die "Could not open input file $ARGV[0]";
@@ -88,7 +97,18 @@ do {
         if ($dry_run) {
             print "$csv\n";
         } else
-            produce($producer, $topic, $csv);
+            produce($producer, $newTopic, $csv);
+        }
+        if (rand < $cancelProbability) { # create cancellation
+            my %cancelLine = %line;
+            $cancelLine{CTTU} = 2;
+            incTime($cancelLine{DCTE});
+            my $ccsv = join(",", @line{@fields});
+            if ($dry_run) {
+                print "$ccsv\n";
+            } else
+                produce($producer, $cancellationTopic, $ccsv);
+            }
         }
         usleep(2000);
     }
