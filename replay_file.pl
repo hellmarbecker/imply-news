@@ -41,7 +41,7 @@ sub produceMessage($$$) {
     )->then(sub {
         my $delivery_report = shift;
         $condvar->send;
-        $logger->info("Message successfully delivered with offset " . $delivery_report->{offset});
+        $logger->debug("Message successfully delivered with offset " . $delivery_report->{offset});
     }, sub {
         my $error = shift;
         $condvar->send;
@@ -57,9 +57,12 @@ sub produceMessage($$$) {
 
 my $cfgfile;
 my $dryRun = 0;
+my $runDay = 0; # replay loop index / offset
+
 GetOptions(
     "config|f=s" => \$cfgfile,
     "dry-run|n"  => \$dryRun,
+    "offset|o=i" => \$runDay,
 );
 my $config = LoadFile($cfgfile);
 
@@ -81,11 +84,12 @@ my @fields = split(/,/, $header);
 for (@fields) { s/\"//g; }
 my %fieldPositions = map { $fields[$_] => $_ } (0 .. $#fields);
 
-my $runDay = 0; # replay loop index
+my $lineIndex;
 
 # Replay ad infinitum
 
 do {
+    $lineIndex = 0;
     $logger->info("loop index: $runDay");
 
     while (<INFILE>) {
@@ -115,7 +119,10 @@ do {
                 produceMessage($producer, $cancellationTopic, $ccsv);
             }
         }
-        usleep(2000);
+        # usleep(10);
+        $lineIndex++;
+        print STDERR ".";
+        $logger->info("runDay: $runDay line: $lineIndex") if ($lineIndex % 1000 == 0);
     }
     $runDay++;
     seek(INFILE, 0, SEEK_SET) or die "error: could not reset file handle\n";
