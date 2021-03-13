@@ -34,21 +34,36 @@ sub incTime($$) { # increment by random interval up to 1 hour
 #-------------------------------------------------------------------------------
 sub produceMessage($$$) {
     my($producer, $topic, $message) = @_;
-    my $condvar = AnyEvent->condvar;
+#    my $condvar = AnyEvent->condvar;
     $producer->produce(
         payload => $message,
         topic   => $topic,
     )->then(sub {
         my $delivery_report = shift;
-        $condvar->send;
+#        $condvar->send;
         $logger->debug("Message successfully delivered with offset " . $delivery_report->{offset});
     }, sub {
         my $error = shift;
-        $condvar->send;
+#        $condvar->send;
         $logger->error("Unable to produce a message: " . $error->{error} . ", code: " . $error->{code});
     });
-    $condvar->recv;
+#    $condvar->recv;
 } # produceMessage
+#-------------------------------------------------------------------------------
+sub readConfig($) {
+    my $cfg = LoadFile($_[0]);
+    # get optional includes
+    for my $incf (@{$cfg->{IncludeOptional}}) {
+        if ( -e $incf && -f $incf ) {
+            $logger->debug("Merging file $incf");
+            my $inc = LoadFile($incf);
+            # included settings supersede those in the main config
+            @{$cfg}{keys %$inc} = values %$inc; 
+        } else {
+            $logger->debug("File $incf not found, skipping");
+        }
+    }
+} # readConfig
 #-------------------------------------------------------------------------------
 
 # Kafka topic and producer properties
@@ -64,7 +79,7 @@ GetOptions(
     "dry-run|n"  => \$dryRun,
     "offset|o=i" => \$runDay,
 );
-my $config = LoadFile($cfgfile);
+my $config = readConfig($cfgfile);
 
 $logger->info(Dumper($config->{Kafka}));
 
@@ -104,24 +119,22 @@ do {
 
         my $csv = join(",", @line{@fields});
         if ($dryRun) {
-            print "    $csv\n";
+            print "$csv\n";
         } else {
             produceMessage($producer, $newTopic, $csv);
         }
         if (rand() < $cancelProbability) { # create cancellation
             my %cancelLine = %line;
             $cancelLine{CTTE} = 2;
-            incTime($cancelLine{DCTE}, $cancelLine{HRTE});
+            # incTime($cancelLine{DCTE}, $cancelLine{HRTE});
             my $ccsv = join(",", @cancelLine{@fields});
             if ($dryRun) {
-                print "CANCELLATION: $ccsv\n";
+                print "$ccsv\n";
             } else {
                 produceMessage($producer, $cancellationTopic, $ccsv);
             }
         }
-        # usleep(10);
         $lineIndex++;
-        print STDERR ".";
         $logger->info("runDay: $runDay line: $lineIndex") if ($lineIndex % 1000 == 0);
     }
     $runDay++;
