@@ -32,22 +32,24 @@ sub incTime($$) { # increment by random interval up to 1 hour
     ($_[0], $_[1]) = split(/ /, $newDate);
 } # incTime
 #-------------------------------------------------------------------------------
-sub produceMessage($$$) {
-    my($producer, $topic, $message) = @_;
-#    my $condvar = AnyEvent->condvar;
+sub produceMessage($$$$$) {
+    my($producer, $topic, $message, $cv, $ii) = @_;
+    # my $condvar = AnyEvent->condvar;
+    $logger->debug("$ii Trying to send Message");
+    $cv->begin;
     $producer->produce(
         payload => $message,
         topic   => $topic,
     )->then(sub {
         my $delivery_report = shift;
-#        $condvar->send;
-        $logger->debug("Message successfully delivered with offset " . $delivery_report->{offset});
+        $cv->end;
+        $logger->debug("$ii Message successfully delivered with offset " . $delivery_report->{offset});
     }, sub {
         my $error = shift;
-#        $condvar->send;
-        $logger->error("Unable to produce a message: " . $error->{error} . ", code: " . $error->{code});
+        $cv->end;
+        $logger->error("$ii Unable to produce a message: " . $error->{error} . ", code: " . $error->{code});
     });
-#    $condvar->recv;
+    # $condvar->recv;
 } # produceMessage
 #-------------------------------------------------------------------------------
 sub readConfig($) {
@@ -63,6 +65,7 @@ sub readConfig($) {
             $logger->debug("File $incf not found, skipping");
         }
     }
+    $cfg;
 } # readConfig
 #-------------------------------------------------------------------------------
 
@@ -81,6 +84,7 @@ GetOptions(
 );
 my $config = readConfig($cfgfile);
 
+$logger->info(Dumper($config));
 $logger->info(Dumper($config->{Kafka}));
 
 my $producer = Net::Kafka::Producer->new(%{$config->{Kafka}}) unless $dryRun;
@@ -100,6 +104,8 @@ for (@fields) { s/\"//g; }
 my %fieldPositions = map { $fields[$_] => $_ } (0 .. $#fields);
 
 my $lineIndex;
+
+my $condvar = AnyEvent->condvar;
 
 # Replay ad infinitum
 
@@ -121,7 +127,7 @@ do {
         if ($dryRun) {
             print "$csv\n";
         } else {
-            produceMessage($producer, $newTopic, $csv);
+            produceMessage($producer, $newTopic, $csv, $condvar, $lineIndex);
         }
         if (rand() < $cancelProbability) { # create cancellation
             my %cancelLine = %line;
@@ -131,10 +137,18 @@ do {
             if ($dryRun) {
                 print "$ccsv\n";
             } else {
-                produceMessage($producer, $cancellationTopic, $ccsv);
+                produceMessage($producer, $cancellationTopic, $ccsv, $condvar, $lineIndex);
             }
         }
         $lineIndex++;
+
+        if ($lineIndex % 1000 == 0) {
+            $logger->debug("Calling recv");
+            # Scoop up all the callbacks
+            $condvar->recv;
+            # Reset $condvar so we can receive new events
+            $condvar = AnyEvent->condvar;
+        }
         $logger->info("runDay: $runDay line: $lineIndex") if ($lineIndex % 1000 == 0);
     }
     $runDay++;
