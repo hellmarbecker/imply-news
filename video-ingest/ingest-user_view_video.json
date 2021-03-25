@@ -2,7 +2,7 @@
   "type": "index_parallel",
   "spec": {
     "dataSchema": {
-      "dataSource": "user_view_video_1",
+      "dataSource": "$data_source",
       "timestampSpec": {
         "column": "event_date",
         "format": "millis",
@@ -215,17 +215,17 @@
         "type": "s3",
         "uris": null,
         "prefixes": [
-          "s3://hbecker-us-east-1/m6web_core_fact_beneficiaries_v1/user_view_video/d_date=2020-06-01"
+          "s3://hbecker-us-east-1/m6web_core_fact_beneficiaries_v1/user_view_video/d_date=$d_date"
         ],
         "objects": null,
         "properties": {
           "accessKeyId": {
             "type": "default",
-            "password": "$aws_access_key_id"
+            "password": "$access_key_id"
           },
           "secretAccessKey": {
             "type": "default",
-            "password": "$aws_secret_access_key"
+            "password": "$secret_access_key"
           }
         }
       },
