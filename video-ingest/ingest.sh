@@ -14,6 +14,7 @@ for DATE in $LINES; do
     -X 'POST' -H "Content-Type: application/json" \
     --data @/tmp/ingest-$DATE.json \
     https://imply-b3e-elbexter-n0nnt27t5gdw-723214491.us-east-1.elb.amazonaws.com:9088/druid/indexer/v1/task
+  sleep 180
 
 done
 
