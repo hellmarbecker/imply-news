@@ -1,0 +1,149 @@
+{
+  "type": "index_parallel",
+  "spec": {
+    "ioConfig": {
+      "type": "index_parallel",
+      "inputSource": {
+        "type": "druid",
+        "dataSource": "user_view_video_9",
+        "interval": "2019-06-10/2021-01-24"
+      }
+    },
+    "tuningConfig": {
+      "type": "index_parallel",
+      "partitionsSpec": {
+        "type": "hashed"
+      },
+      "forceGuaranteedRollup": true,
+      "maxNumConcurrentSubTasks": 10
+    },
+    "dataSchema": {
+      "timestampSpec": {
+        "column": "__time",
+        "format": "iso"
+      },
+      "granularitySpec": {
+        "rollup": false,
+        "queryGranularity": "NONE",
+        "segmentGranularity": "day"
+      },
+      "dimensionsSpec": {
+        "dimensions": [
+          {
+            "name": "program_title",
+            "type": "string"
+          },
+          {
+            "name": "account_id",
+            "type": "string"
+          },
+          {
+            "name": "asn",
+            "type": "string"
+          },
+          {
+            "name": "conn_type",
+            "type": "string"
+          },
+          {
+            "name": "country_code",
+            "type": "string"
+          },
+          {
+            "name": "customer",
+            "type": "string"
+          },
+          {
+            "name": "d_date",
+            "type": "string"
+          },
+          {
+            "name": "device_id",
+            "type": "string"
+          },
+          {
+            "name": "end_date",
+            "type": "long"
+          },
+          {
+            "name": "event_id",
+            "type": "string"
+          },
+          {
+            "name": "hashed_ip",
+            "type": "string"
+          },
+          {
+            "name": "is_session_empty",
+            "type": "string"
+          },
+          {
+            "name": "latitude",
+            "type": "double"
+          },
+          {
+            "name": "legal_end_date",
+            "type": "long"
+          },
+          {
+            "name": "longitude",
+            "type": "double"
+          },
+          {
+            "name": "platform_code",
+            "type": "string"
+          },
+          {
+            "name": "program_id",
+            "type": "string"
+          },
+          {
+            "name": "reporting_type_code",
+            "type": "string"
+          },
+          {
+            "name": "seconds_viewed",
+            "type": "long"
+          },
+          {
+            "name": "service_code",
+            "type": "string"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "start_date",
+            "type": "long"
+          },
+          {
+            "name": "user_action",
+            "type": "string"
+          },
+          {
+            "name": "user_agent",
+            "type": "string"
+          },
+          {
+            "name": "video_duration",
+            "type": "long"
+          },
+          {
+            "name": "video_id",
+            "type": "string"
+          },
+          {
+            "name": "video_title",
+            "type": "string"
+          },
+          {
+            "name": "video_type",
+            "type": "string"
+          }
+        ]
+      },
+      "dataSource": "user_view_video_9"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DATASOURCE=user_view_video_9
+DATASOURCE=user_view_video_6
 
 LINES=$(cat ./datelist)
 
