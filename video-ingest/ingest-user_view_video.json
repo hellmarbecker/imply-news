@@ -101,10 +101,10 @@
             "createBitmapIndex": true
           },
           {
-            "type": "long",
+            "type": "string",
             "name": "program_id",
             "multiValueHandling": "SORTED_ARRAY",
-            "createBitmapIndex": false
+            "createBitmapIndex": true
           },
           {
             "type": "string",
@@ -237,7 +237,7 @@
         },
         "binaryAsString": false
       },
-      "appendToExisting": false
+      "appendToExisting": true
     },
     "tuningConfig": {
       "type": "index_parallel",
@@ -253,7 +253,7 @@
       "splitHintSpec": {
         "type": "maxSize",
         "maxSplitSize": 1073741824,
-        "maxNumFiles": 10
+        "maxNumFiles": 1
       },
       "partitionsSpec": {
         "type": "dynamic",
@@ -285,8 +285,8 @@
       "reportParseExceptions": false,
       "pushTimeout": 0,
       "segmentWriteOutMediumFactory": null,
-      "maxNumConcurrentSubTasks": 9,
-      "maxRetry": 3,
+      "maxNumConcurrentSubTasks": 30,
+      "maxRetry": 999,
       "taskStatusCheckPeriodMs": 1000,
       "chatHandlerTimeout": "PT10S",
       "chatHandlerNumRetries": 5,
