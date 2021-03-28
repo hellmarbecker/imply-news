@@ -1,0 +1,61 @@
+{
+  "type": "index",
+  "spec": {
+    "ioConfig": {
+      "type": "index",
+      "inputSource": {
+        "type": "s3",
+        "prefixes": [
+          "s3://hbecker-us-east-1/m6web_core_dim_catalog_v1/video_folder"
+        ],
+        "properties": {
+          "accessKeyId": {
+            "type": "default",
+            "password": "$access_key_id"
+          },
+          "secretAccessKey": {
+            "type": "default",
+            "password": "$secret_access_key"
+          }
+        }
+      },
+      "inputFormat": {
+        "type": "parquet"
+      }
+    },
+    "tuningConfig": {
+      "type": "index",
+      "maxRowsPerSegment": 100000000,
+      "maxRowsInMemory": 1000000,
+      "indexSpec": {
+        "segmentLoader": {
+          "type": "onHeapIndexedTable",
+          "keyColumns": [
+            "video_id",
+            "program_id",
+            "folder_id"
+          ]
+        }
+      }
+    },
+    "dataSchema": {
+      "dataSource": "video_folder",
+      "timestampSpec": {
+        "column": "!!!_no_such_column_!!!",
+        "missingValue": "2010-01-01T00:00:00Z"
+      },
+      "granularitySpec": {
+        "queryGranularity": "none",
+        "rollup": false
+      },
+      "dimensionsSpec": {
+        "dimensionExclusions": []
+      }
+    },
+    "granularitySpec": {
+      "queryGranularity": "none",
+      "rollup": false,
+      "segmentGranularity": "year"
+    }
+  }
+}
