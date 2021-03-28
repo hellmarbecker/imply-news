@@ -1,0 +1,87 @@
+{
+  "type": "index_parallel",
+  "spec": {
+    "ioConfig": {
+      "type": "index_parallel",
+      "inputSource": {
+        "type": "s3",
+        "properties": {
+          "accessKeyId": {
+            "type": "default",
+            "password": ""
+          },
+          "secretAccessKey": {
+            "type": "default",
+            "password": ""
+          }
+        },
+        "prefixes": [
+          "s3://hbecker-us-east-1/m6web_core_dim_catalog_v1/video_publication_history/d_date=2020-06-19"
+        ]
+      },
+      "inputFormat": {
+        "type": "parquet"
+      }
+    },
+    "tuningConfig": {
+      "type": "index_parallel",
+      "partitionsSpec": {
+        "type": "dynamic"
+      }
+    },
+    "dataSchema": {
+      "dataSource": "video_publication_history_raw",
+      "timestampSpec": {
+        "column": "publication_start_date",
+        "format": "millis"
+      },
+      "dimensionsSpec": {
+        "dimensions": [
+          "platform_code",
+          "platform_path",
+          "platform_title",
+          {
+            "type": "long",
+            "name": "publication_create_date"
+          },
+          {
+            "type": "long",
+            "name": "publication_expiration_date"
+          },
+          "publication_ids",
+          "publication_is_published",
+          "publication_statuses",
+          {
+            "type": "long",
+            "name": "publication_update_date"
+          },
+          "reporting_type_code",
+          {
+            "type": "long",
+            "name": "right_end_freevod_date"
+          },
+          {
+            "type": "long",
+            "name": "right_end_right_date"
+          },
+          {
+            "type": "long",
+            "name": "right_start_freevod_date"
+          },
+          {
+            "type": "long",
+            "name": "right_start_right_date"
+          },
+          "service_code",
+          "service_title",
+          "video_id"
+        ]
+      },
+      "granularitySpec": {
+        "queryGranularity": "none",
+        "rollup": false,
+        "segmentGranularity": "day"
+      }
+    }
+  }
+}

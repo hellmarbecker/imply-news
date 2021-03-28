@@ -1,13 +1,13 @@
 #!/bin/bash
 
-DATASOURCE=user_view_video_9
+DATASOURCE=video_publication_history_raw
 
-LINES=$(cat ./datelist-user_view_video)
+LINES=$(cat ./datelist-video_publication_history)
 
 for DATE in $LINES; do
 
 #  echo "\n----Processing ingestion for $DATE"
-  ./gen-spec.pl --json-template ingest-user_view_video.json \
+  ./gen-spec.pl --json-template ingest-video_publication_history.json \
     --access-key-id $AWS_ACCESS_KEY_ID \
     --secret-access-key $AWS_SECRET_ACCESS_KEY \
     --date $DATE \
