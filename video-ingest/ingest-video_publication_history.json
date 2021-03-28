@@ -8,29 +8,24 @@
         "properties": {
           "accessKeyId": {
             "type": "default",
-            "password": ""
+            "password": "$access_key_id"
           },
           "secretAccessKey": {
             "type": "default",
-            "password": ""
+            "password": "$secret_access_key"
           }
         },
         "prefixes": [
-          "s3://hbecker-us-east-1/m6web_core_dim_catalog_v1/video_publication_history/d_date=2020-06-19"
+          "s3://hbecker-us-east-1/m6web_core_dim_catalog_v1/video_publication_history/d_date=$d_date"
         ]
       },
       "inputFormat": {
         "type": "parquet"
-      }
-    },
-    "tuningConfig": {
-      "type": "index_parallel",
-      "partitionsSpec": {
-        "type": "dynamic"
-      }
+      },
+      "appendToExisting": true
     },
     "dataSchema": {
-      "dataSource": "video_publication_history_raw",
+      "dataSource": "$data_source",
       "timestampSpec": {
         "column": "publication_start_date",
         "format": "millis"
@@ -77,11 +72,86 @@
           "video_id"
         ]
       },
+      "transformSpec": {
+        "filter": null,
+        "transforms": [
+          {
+            "type": "expression",
+            "name": "d_date",
+            "expression": "'$d_date'"
+          },
+          {
+            "type": "expression",
+            "name": "customer",
+            "expression": "'m6web'"
+          }
+        ]
+      },
       "granularitySpec": {
         "queryGranularity": "none",
         "rollup": false,
         "segmentGranularity": "day"
       }
+    },
+    "tuningConfig": {
+      "type": "index_parallel",
+      "maxRowsPerSegment": 5000000,
+      "appendableIndexSpec": {
+        "type": "onheap"
+      },
+      "maxRowsInMemory": 1000000,
+      "maxBytesInMemory": 0,
+      "skipBytesInMemoryOverheadCheck": false,
+      "maxTotalRows": null,
+      "numShards": null,
+      "splitHintSpec": {
+        "type": "maxSize",
+        "maxSplitSize": 1073741824,
+        "maxNumFiles": 1
+      },
+      "partitionsSpec": {
+        "type": "dynamic",
+        "maxRowsPerSegment": 5000000,
+        "maxTotalRows": null
+      },
+      "indexSpec": {
+        "bitmap": {
+          "type": "roaring",
+          "compressRunOnSerialization": true
+        },
+        "dimensionCompression": "lz4",
+        "metricCompression": "lz4",
+        "longEncoding": "longs",
+        "segmentLoader": null
+      },
+      "indexSpecForIntermediatePersists": {
+        "bitmap": {
+          "type": "roaring",
+          "compressRunOnSerialization": true
+        },
+        "dimensionCompression": "lz4",
+        "metricCompression": "lz4",
+        "longEncoding": "longs",
+        "segmentLoader": null
+      },
+      "maxPendingPersists": 0,
+      "forceGuaranteedRollup": false,
+      "reportParseExceptions": false,
+      "pushTimeout": 0,
+      "segmentWriteOutMediumFactory": null,
+      "maxNumConcurrentSubTasks": 30,
+      "maxRetry": 999,
+      "taskStatusCheckPeriodMs": 1000,
+      "chatHandlerTimeout": "PT10S",
+      "chatHandlerNumRetries": 5,
+      "maxNumSegmentsToMerge": 100,
+      "totalNumMergeTasks": 10,
+      "logParseExceptions": false,
+      "maxParseExceptions": 2147483647,
+      "maxSavedParseExceptions": 0,
+      "maxColumnsToMerge": -1,
+      "buildV9Directly": true,
+      "partitionDimensions": []
     }
   }
 }
