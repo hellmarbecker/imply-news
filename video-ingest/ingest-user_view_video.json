@@ -12,6 +12,12 @@
         "dimensions": [
           {
             "type": "string",
+            "name": "platform_code",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
             "name": "customer",
             "multiValueHandling": "SORTED_ARRAY",
             "createBitmapIndex": true
@@ -93,12 +99,6 @@
             "name": "longitude",
             "multiValueHandling": "SORTED_ARRAY",
             "createBitmapIndex": false
-          },
-          {
-            "type": "string",
-            "name": "platform_code",
-            "multiValueHandling": "SORTED_ARRAY",
-            "createBitmapIndex": true
           },
           {
             "type": "string",
@@ -245,7 +245,7 @@
       "appendableIndexSpec": {
         "type": "onheap"
       },
-      "maxRowsInMemory": 1000000,
+      "maxRowsInMemory": 500000,
       "maxBytesInMemory": 0,
       "skipBytesInMemoryOverheadCheck": false,
       "maxTotalRows": null,
@@ -285,7 +285,7 @@
       "reportParseExceptions": false,
       "pushTimeout": 0,
       "segmentWriteOutMediumFactory": null,
-      "maxNumConcurrentSubTasks": 30,
+      "maxNumConcurrentSubTasks": 5,
       "maxRetry": 999,
       "taskStatusCheckPeriodMs": 1000,
       "chatHandlerTimeout": "PT10S",

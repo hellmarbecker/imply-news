@@ -17,6 +17,12 @@
           },
           {
             "type": "string",
+            "name": "platform_level1",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
             "name": "account_id",
             "multiValueHandling": "SORTED_ARRAY",
             "createBitmapIndex": true
@@ -205,10 +211,8 @@
       "granularitySpec": {
         "type": "uniform",
         "segmentGranularity": "DAY",
-        "queryGranularity": {
-          "type": "none"
-        },
-        "rollup": false,
+        "queryGranularity": "DAY",
+        "rollup": true,
         "intervals": []
       },
       "transformSpec": {
@@ -228,6 +232,11 @@
             "type": "expression",
             "name": "customer",
             "expression": "'m6web'"
+          },
+          {
+            "type": "expression",
+            "expression": "case_searched(((\"platform_code\" == 'free_android_box') || (\"platform_code\" == 'free_qml') || (\"platform_code\" == 'free_iptv') || (\"platform_code\" == 'bytel_iptv') || (\"platform_code\" == 'sfr_iptv') || (\"platform_code\" == 'orange_newbox') || (\"platform_code\" == 'orange_newtv') || (\"platform_code\" == 'bytel_android_box')),'IPTV',(\"platform_code\" == 'm6group_web'),'Web',((\"platform_code\" == 'm6group_iphone') || (\"platform_code\" == 'm6group_ipad') || (\"platform_code\" == 'm6group_androidmob') || (\"platform_code\" == 'm6group_androidtab')),'Mobile',(\"platform_code\" == 'm6group_hbbtv'),'HBBTV',(\"platform_code\" == 'chromecast'),'Chromecast',\"platform_code\")",
+            "name": "platform_level1"
           }
         ]
       }
@@ -264,7 +273,7 @@
     },
     "tuningConfig": {
       "type": "index_parallel",
-      "maxRowsPerSegment": 1800000,
+      "maxRowsPerSegment": 1900000,
       "appendableIndexSpec": {
         "type": "onheap"
       },
@@ -276,11 +285,11 @@
       "splitHintSpec": {
         "type": "maxSize",
         "maxSplitSize": 1073741824,
-        "maxNumFiles": 30
+        "maxNumFiles": 10
       },
       "partitionsSpec": {
         "type": "dynamic",
-        "maxRowsPerSegment": 1800000,
+        "maxRowsPerSegment": 1900000,
         "maxTotalRows": null
       },
       "indexSpec": {
