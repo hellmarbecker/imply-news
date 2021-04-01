@@ -71,3 +71,6 @@ SELECT
 FROM "bedrock-hellmar"."m6web_core_fact_beneficiaries_v1" v
 LEFT OUTER JOIN "bedrock-hellmar"."m6web_core_dim_users_v1" u
 ON u.account_id = v.account_id
+WHERE d_date <= '2019-09-16'
+                                                 
+                                                 
