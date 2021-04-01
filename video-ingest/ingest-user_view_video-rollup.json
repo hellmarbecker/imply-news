@@ -1,0 +1,269 @@
+{
+  "type": "index_parallel",
+  "spec": {
+    "dataSchema": {
+      "dataSource": "$data_source",
+      "timestampSpec": {
+        "column": "!!!_no_such_column_!!!",
+        "missingValue": "2010-01-01T00:00:00Z"
+      },
+      "dimensionsSpec": {
+        "dimensions": [
+          {
+            "type": "string",
+            "name": "customer",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "platform_level1",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "asn",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "conn_type",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "country_code",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "is_session_empty",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "platform_code",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "program_id",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "program_title",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "reporting_type_code",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "service_code",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "user_action",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "video_id",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "video_title",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          },
+          {
+            "type": "string",
+            "name": "video_type",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
+          }
+        ]
+      },
+      "metricsSpec": [
+        {
+          "name": "count",
+          "type": "count"
+        },
+        {
+          "name": "sum_seconds_viewed",
+          "type": "longSum",
+          "fieldName": "seconds_viewed"
+        },
+        {
+          "name": "sum_video_duration",
+          "type": "longSum",
+          "fieldName": "video_duration"
+        },
+        {
+          "name": "hll_account_id",
+          "type": "HLLSketchBuild",
+          "fieldName": "account_id"
+        },
+        {
+          "name": "hll_session_id",
+          "type": "HLLSketchBuild",
+          "fieldName": "session_id"
+        },
+        {
+          "name": "hll_device_id",
+          "type": "HLLSketchBuild",
+          "fieldName": "device_id"
+        },
+        {
+          "name": "hll_account_device_id",
+          "type": "HLLSketchBuild",
+          "fieldName": "account_device_id"
+        }
+      ],
+      "granularitySpec": {
+        "type": "uniform",
+        "segmentGranularity": "DAY",
+        "queryGranularity": "DAY",
+        "rollup": true,
+        "intervals": []
+      },
+      "transformSpec": {
+        "filter": null,
+        "transforms": [
+          {
+            "type": "expression",
+            "name": "__time",
+            "expression": "timestamp_parse('$d_date','YYYY-MM-dd')"
+          },
+          {
+            "type": "expression",
+            "name": "d_date",
+            "expression": "'$d_date'"
+          },
+          {
+            "type": "expression",
+            "name": "customer",
+            "expression": "'m6web'"
+          },
+          {
+            "type": "expression",
+            "expression": "case_searched(((\"platform_code\" == 'free_android_box') || (\"platform_code\" == 'free_qml') || (\"platform_code\" == 'free_iptv') || (\"platform_code\" == 'bytel_iptv') || (\"platform_code\" == 'sfr_iptv') || (\"platform_code\" == 'orange_newbox') || (\"platform_code\" == 'orange_newtv') || (\"platform_code\" == 'bytel_android_box')),'IPTV',(\"platform_code\" == 'm6group_web'),'Web',((\"platform_code\" == 'm6group_iphone') || (\"platform_code\" == 'm6group_ipad') || (\"platform_code\" == 'm6group_androidmob') || (\"platform_code\" == 'm6group_androidtab')),'Mobile',(\"platform_code\" == 'm6group_hbbtv'),'HBBTV',(\"platform_code\" == 'chromecast'),'Chromecast',\"platform_code\")",
+            "name": "platform_level1"
+          },
+          {
+            "type": "expression",
+            "name": "account_device_id",
+            "expression": "if(account_id!=''||account_id!=null,account_id,if(device_id!=''||device_id!=null,device_id,device_id))"
+          }
+        ]
+      }
+    },
+    "ioConfig": {
+      "type": "index_parallel",
+      "inputSource": {
+        "type": "s3",
+        "uris": null,
+        "prefixes": [
+          "s3://hbecker-us-east-1/m6web_core_fact_beneficiaries_v1/user_view_video/d_date=$d_date"
+        ],
+        "objects": null,
+        "properties": {
+          "accessKeyId": {
+            "type": "default",
+            "password": "$access_key_id"
+          },
+          "secretAccessKey": {
+            "type": "default",
+            "password": "$secret_access_key"
+          }
+        }
+      },
+      "inputFormat": {
+        "type": "parquet",
+        "flattenSpec": {
+          "useFieldDiscovery": true,
+          "fields": []
+        },
+        "binaryAsString": false
+      },
+      "appendToExisting": true
+    },
+    "tuningConfig": {
+      "type": "index_parallel",
+      "maxRowsPerSegment": 1900000,
+      "appendableIndexSpec": {
+        "type": "onheap"
+      },
+      "maxRowsInMemory": 500000,
+      "maxBytesInMemory": 0,
+      "skipBytesInMemoryOverheadCheck": false,
+      "maxTotalRows": null,
+      "numShards": null,
+      "splitHintSpec": {
+        "type": "maxSize",
+        "maxSplitSize": 1073741824,
+        "maxNumFiles": 10
+      },
+      "partitionsSpec": {
+        "type": "dynamic",
+        "maxRowsPerSegment": 1900000,
+        "maxTotalRows": null
+      },
+      "indexSpec": {
+        "bitmap": {
+          "type": "roaring",
+          "compressRunOnSerialization": true
+        },
+        "dimensionCompression": "lz4",
+        "metricCompression": "lz4",
+        "longEncoding": "longs",
+        "segmentLoader": null
+      },
+      "indexSpecForIntermediatePersists": {
+        "bitmap": {
+          "type": "roaring",
+          "compressRunOnSerialization": true
+        },
+        "dimensionCompression": "lz4",
+        "metricCompression": "lz4",
+        "longEncoding": "longs",
+        "segmentLoader": null
+      },
+      "maxPendingPersists": 0,
+      "forceGuaranteedRollup": false,
+      "reportParseExceptions": false,
+      "pushTimeout": 0,
+      "segmentWriteOutMediumFactory": null,
+      "maxNumConcurrentSubTasks": 5,
+      "maxRetry": 999,
+      "taskStatusCheckPeriodMs": 1000,
+      "chatHandlerTimeout": "PT10S",
+      "chatHandlerNumRetries": 5,
+      "maxNumSegmentsToMerge": 100,
+      "totalNumMergeTasks": 10,
+      "logParseExceptions": false,
+      "maxParseExceptions": 2147483647,
+      "maxSavedParseExceptions": 0,
+      "maxColumnsToMerge": -1,
+      "buildV9Directly": true,
+      "partitionDimensions": []
+    }
+  }
+}
