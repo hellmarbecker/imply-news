@@ -1,0 +1,142 @@
+{
+  "type": "index_parallel",
+  "id": "index_parallel_user_account_indexed_nibbkkpk_2021-04-02T00:29:36.066Z",
+  "groupId": "index_parallel_user_account_indexed_nibbkkpk_2021-04-02T00:29:36.066Z",
+  "resource": {
+    "availabilityGroup": "index_parallel_user_account_indexed_nibbkkpk_2021-04-02T00:29:36.066Z",
+    "requiredCapacity": 1
+  },
+  "spec": {
+    "dataSchema": {
+      "dataSource": "user_account_indexed",
+      "timestampSpec": {
+        "column": "__time",
+        "format": "iso",
+        "missingValue": null
+      },
+      "dimensionsSpec": {
+        "dimensions": [
+          {
+            "type": "string",
+            "name": "account_id",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": false
+          },
+          {
+            "type": "string",
+            "name": "age",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": false
+          },
+          {
+            "type": "string",
+            "name": "gender",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": false
+          },
+          {
+            "type": "string",
+            "name": "zip_code",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": false
+          }
+        ],
+        "dimensionExclusions": [
+          "__time"
+        ]
+      },
+      "metricsSpec": [],
+      "granularitySpec": {
+        "type": "uniform",
+        "segmentGranularity": "DAY",
+        "queryGranularity": {
+          "type": "none"
+        },
+        "rollup": false,
+        "intervals": []
+      },
+      "transformSpec": {
+        "filter": null,
+        "transforms": []
+      }
+    },
+    "ioConfig": {
+      "type": "index_parallel",
+      "inputSource": {
+        "type": "druid",
+        "dataSource": "user_account",
+        "interval": "2010-01-01T00:00:00.000Z/2010-01-02T00:00:00.000Z",
+        "filter": null,
+        "dimensions": null,
+        "metrics": null
+      },
+      "inputFormat": null,
+      "appendToExisting": false
+    },
+    "tuningConfig": {
+      "type": "index_parallel",
+      "maxRowsPerSegment": 100000000,
+      "appendableIndexSpec": {
+        "type": "onheap"
+      },
+      "maxRowsInMemory": 1000000,
+      "maxBytesInMemory": 0,
+      "skipBytesInMemoryOverheadCheck": false,
+      "maxTotalRows": 100000000,
+      "numShards": null,
+      "splitHintSpec": null,
+      "partitionsSpec": {
+        "type": "dynamic",
+        "maxRowsPerSegment": 100000000,
+        "maxTotalRows": 100000000
+      },
+      "indexSpec": {
+        "bitmap": {
+          "type": "roaring",
+          "compressRunOnSerialization": true
+        },
+        "dimensionCompression": "lz4",
+        "metricCompression": "lz4",
+        "longEncoding": "longs",
+        "segmentLoader": {
+          "type": "onHeapIndexedTable",
+          "keyColumns": [
+            "account_id"
+          ]
+        }
+      },
+      "indexSpecForIntermediatePersists": {
+        "bitmap": {
+          "type": "roaring",
+          "compressRunOnSerialization": true
+        },
+        "dimensionCompression": "lz4",
+        "metricCompression": "lz4",
+        "longEncoding": "longs",
+        "segmentLoader": null
+      },
+      "maxPendingPersists": 0,
+      "forceGuaranteedRollup": false,
+      "reportParseExceptions": false,
+      "pushTimeout": 0,
+      "segmentWriteOutMediumFactory": null,
+      "maxNumConcurrentSubTasks": 1,
+      "maxRetry": 3,
+      "taskStatusCheckPeriodMs": 1000,
+      "chatHandlerTimeout": "PT10S",
+      "chatHandlerNumRetries": 5,
+      "maxNumSegmentsToMerge": 100,
+      "totalNumMergeTasks": 10,
+      "logParseExceptions": false,
+      "maxParseExceptions": 2147483647,
+      "maxSavedParseExceptions": 0,
+      "maxColumnsToMerge": -1,
+      "buildV9Directly": true,
+      "partitionDimensions": []
+    }
+  },
+  "context": {
+    "forceTimeChunkLock": true
+  },
+  "dataSource": "user_account_indexed"
+}
