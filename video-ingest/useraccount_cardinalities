@@ -1,0 +1,64 @@
+SELECT
+  count(distinct account_id),
+  count(distinct age),
+  count(distinct birthdate),
+  count(distinct consent_adtargeting),
+  count(distinct consent_analytics),
+  count(distinct consent_expiration_date),
+  count(distinct consent_multidevicematching),
+  count(distinct consent_personalization),
+  count(distinct create_date),  **
+  count(distinct email_md5),  **
+  count(distinct email_sha256),  **
+  count(distinct emailing_id),  **
+  count(distinct gender),
+  count(distinct has_kid),
+  count(distinct has_subscribed_newsletter),
+  count(distinct has_subscribed_newsletter_partner),
+  count(distinct is_active),
+  count(distinct is_empty_first_name),
+  count(distinct is_empty_last_name),
+  count(distinct is_locked_out),
+  count(distinct is_registered),
+  count(distinct is_session_expired),
+  count(distinct is_verified),
+  count(distinct last_login_date),  **
+  count(distinct locale),
+  count(distinct login_provider),
+  count(distinct parental_filter),
+  count(distinct registration_source),
+  count(distinct update_date),  **
+  count(distinct zip_code)
+FROM user_account
+
+0000000033986773
+000825
+0000052692
+03
+03
+00000005055577
+03
+03
+0000000033601464
+0000000030896021
+0000000031024714
+0000000019144151
+04
+02
+05
+03
+03
+03
+03
+02
+03
+02
+03
+0000000032645040
+000229
+05
+03
+0023
+0000000034580990
+0000074675
+ 
