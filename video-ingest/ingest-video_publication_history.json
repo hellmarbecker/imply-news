@@ -90,12 +90,12 @@
       "granularitySpec": {
         "queryGranularity": "none",
         "rollup": false,
-        "segmentGranularity": "day"
+        "segmentGranularity": "YEAR"
       }
     },
     "tuningConfig": {
       "type": "index_parallel",
-      "maxRowsPerSegment": 5000000,
+      "maxRowsPerSegment": 7500000,
       "appendableIndexSpec": {
         "type": "onheap"
       },
@@ -139,7 +139,7 @@
       "reportParseExceptions": false,
       "pushTimeout": 0,
       "segmentWriteOutMediumFactory": null,
-      "maxNumConcurrentSubTasks": 30,
+      "maxNumConcurrentSubTasks": 1,
       "maxRetry": 999,
       "taskStatusCheckPeriodMs": 1000,
       "chatHandlerTimeout": "PT10S",

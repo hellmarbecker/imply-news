@@ -4,21 +4,20 @@
     "dataSchema": {
       "dataSource": "$data_source",
       "timestampSpec": {
-        "column": "event_date",
-        "format": "millis",
-        "missingValue": null
+        "column": "!!!_no_such_column_!!!",
+        "missingValue": "2010-01-01T00:00:00Z"
       },
       "dimensionsSpec": {
         "dimensions": [
           {
             "type": "string",
-            "name": "platform_code",
+            "name": "customer",
             "multiValueHandling": "SORTED_ARRAY",
             "createBitmapIndex": true
           },
           {
             "type": "string",
-            "name": "customer",
+            "name": "platform_level1",
             "multiValueHandling": "SORTED_ARRAY",
             "createBitmapIndex": true
           },
@@ -39,6 +38,12 @@
             "name": "conn_type",
             "multiValueHandling": "SORTED_ARRAY",
             "createBitmapIndex": true
+          },
+          {
+            "type": "long",
+            "name": "event_date",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": false
           },
           {
             "type": "string",
@@ -99,6 +104,12 @@
             "name": "longitude",
             "multiValueHandling": "SORTED_ARRAY",
             "createBitmapIndex": false
+          },
+          {
+            "type": "string",
+            "name": "platform_code",
+            "multiValueHandling": "SORTED_ARRAY",
+            "createBitmapIndex": true
           },
           {
             "type": "string",
@@ -178,24 +189,40 @@
             "multiValueHandling": "SORTED_ARRAY",
             "createBitmapIndex": true
           }
-        ],
-        "dimensionExclusions": [
-          "event_date"
         ]
       },
-      "metricsSpec": [],
+      "metricsSpec": [
+        {
+          "name": "hll_account_id",
+          "type": "HLLSketchBuild",
+          "fieldName": "account_id"
+        },
+        {
+          "name": "hll_session_id",
+          "type": "HLLSketchBuild",
+          "fieldName": "session_id"
+        },
+        {
+          "name": "hll_device_id",
+          "type": "HLLSketchBuild",
+          "fieldName": "device_id"
+        }
+      ],
       "granularitySpec": {
         "type": "uniform",
         "segmentGranularity": "DAY",
-        "queryGranularity": {
-          "type": "none"
-        },
-        "rollup": false,
+        "queryGranularity": "DAY",
+        "rollup": true,
         "intervals": []
       },
       "transformSpec": {
         "filter": null,
         "transforms": [
+          {
+            "type": "expression",
+            "name": "__time",
+            "expression": "timestamp_parse('$d_date','YYYY-MM-dd')"
+          },
           {
             "type": "expression",
             "name": "d_date",
@@ -205,6 +232,11 @@
             "type": "expression",
             "name": "customer",
             "expression": "'m6web'"
+          },
+          {
+            "type": "expression",
+            "expression": "case_searched(((\"platform_code\" == 'free_android_box') || (\"platform_code\" == 'free_qml') || (\"platform_code\" == 'free_iptv') || (\"platform_code\" == 'bytel_iptv') || (\"platform_code\" == 'sfr_iptv') || (\"platform_code\" == 'orange_newbox') || (\"platform_code\" == 'orange_newtv') || (\"platform_code\" == 'bytel_android_box')),'IPTV',(\"platform_code\" == 'm6group_web'),'Web',((\"platform_code\" == 'm6group_iphone') || (\"platform_code\" == 'm6group_ipad') || (\"platform_code\" == 'm6group_androidmob') || (\"platform_code\" == 'm6group_androidtab')),'Mobile',(\"platform_code\" == 'm6group_hbbtv'),'HBBTV',(\"platform_code\" == 'chromecast'),'Chromecast',\"platform_code\")",
+            "name": "platform_level1"
           }
         ]
       }
@@ -241,7 +273,7 @@
     },
     "tuningConfig": {
       "type": "index_parallel",
-      "maxRowsPerSegment": 5000000,
+      "maxRowsPerSegment": 1900000,
       "appendableIndexSpec": {
         "type": "onheap"
       },
@@ -253,11 +285,11 @@
       "splitHintSpec": {
         "type": "maxSize",
         "maxSplitSize": 1073741824,
-        "maxNumFiles": 1
+        "maxNumFiles": 10
       },
       "partitionsSpec": {
         "type": "dynamic",
-        "maxRowsPerSegment": 5000000,
+        "maxRowsPerSegment": 1900000,
         "maxTotalRows": null
       },
       "indexSpec": {

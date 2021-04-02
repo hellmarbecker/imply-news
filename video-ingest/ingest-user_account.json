@@ -1,8 +1,8 @@
 {
-  "type": "index",
+  "type": "index_parallel",
   "spec": {
     "ioConfig": {
-      "type": "index",
+      "type": "index_parallel",
       "inputSource": {
         "type": "s3",
         "prefixes": [
@@ -24,9 +24,19 @@
       }
     },
     "tuningConfig": {
-      "type": "index",
-      "maxRowsPerSegment": 2000000,
+      "type": "index_parallel",
+      "maxRowsPerSegment": 100000000,
       "maxRowsInMemory": 1000000,
+      "splitHintSpec": {
+        "type": "maxSize",
+        "maxSplitSize": 1073741824,
+        "maxNumFiles": 10
+      },
+      "partitionsSpec": {
+        "type": "dynamic",
+        "maxRowsPerSegment": 100000000,
+        "maxTotalRows": null
+      },
       "indexSpec": {
         "segmentLoader": {
           "type": "onHeapIndexedTable",
@@ -34,7 +44,8 @@
             "account_id"
           ]
         }
-      }
+      },
+      "maxNumConcurrentSubTasks": 5
     },
     "dataSchema": {
       "dataSource": "user_account",

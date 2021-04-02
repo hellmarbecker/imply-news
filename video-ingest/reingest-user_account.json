@@ -1,0 +1,153 @@
+{
+  "type": "index_parallel",
+  "spec": {
+    "ioConfig": {
+      "type": "index_parallel",
+      "inputSource": {
+        "type": "druid",
+        "dataSource": "user_view_video_rollup_with_acct",
+        "interval": "2019-06-01/2021-01-31"
+      }
+    },
+    "tuningConfig": {
+      "type": "index_parallel",
+      "partitionsSpec": {
+        "type": "dynamic",
+        "maxRowsPerSegment": 1900000
+      },
+      "maxNumConcurrentSubTasks": 20
+    },
+    "dataSchema": {
+      "timestampSpec": {
+        "column": "__time",
+        "format": "iso"
+      },
+      "granularitySpec": {
+        "rollup": true,
+        "queryGranularity": "DAY",
+        "segmentGranularity": "day"
+      },
+      "dimensionsSpec": {
+        "dimensions": [
+          {
+            "name": "account_id",
+            "type": "string"
+          },
+          {
+            "name": "asn",
+            "type": "string"
+          },
+          {
+            "name": "conn_type",
+            "type": "string"
+          },
+          {
+            "name": "country_code",
+            "type": "string"
+          },
+          {
+            "name": "customer",
+            "type": "string"
+          },
+          {
+            "name": "is_session_empty",
+            "type": "string"
+          },
+          {
+            "name": "platform_code",
+            "type": "string"
+          },
+          {
+            "name": "platform_level1",
+            "type": "string"
+          },
+          {
+            "name": "program_id",
+            "type": "string"
+          },
+          {
+            "name": "program_title",
+            "type": "string"
+          },
+          {
+            "name": "reporting_type_code",
+            "type": "string"
+          },
+          {
+            "name": "service_code",
+            "type": "string"
+          },
+          {
+            "name": "user_action",
+            "type": "string"
+          },
+          {
+            "name": "video_id",
+            "type": "string"
+          },
+          {
+            "name": "video_title",
+            "type": "string"
+          },
+          {
+            "name": "video_type",
+            "type": "string"
+          }
+        ]
+      },
+      "metricsSpec": [
+        {
+          "type": "longSum",
+          "name": "sum_video_duration",
+          "fieldName": "sum_video_duration",
+          "expression": null
+        },
+        {
+          "type": "HLLSketchMerge",
+          "name": "hll_device_id",
+          "fieldName": "hll_device_id",
+          "lgK": 12,
+          "tgtHllType": "HLL_4",
+          "round": false
+        },
+        {
+          "type": "HLLSketchMerge",
+          "name": "hll_session_id",
+          "fieldName": "hll_session_id",
+          "lgK": 12,
+          "tgtHllType": "HLL_4",
+          "round": false
+        },
+        {
+          "type": "longSum",
+          "name": "count",
+          "fieldName": "count",
+          "expression": null
+        },
+        {
+          "type": "HLLSketchMerge",
+          "name": "hll_account_device_id",
+          "fieldName": "hll_account_device_id",
+          "lgK": 12,
+          "tgtHllType": "HLL_4",
+          "round": false
+        },
+        {
+          "type": "HLLSketchMerge",
+          "name": "hll_account_id",
+          "fieldName": "hll_account_id",
+          "lgK": 12,
+          "tgtHllType": "HLL_4",
+          "round": false
+        },
+        {
+          "type": "longSum",
+          "name": "sum_seconds_viewed",
+          "fieldName": "sum_seconds_viewed",
+          "expression": null
+        }
+      ],
+      "dataSource": "user_view_video_rollup_with_acct_reindex"
+    }
+  }
+}
