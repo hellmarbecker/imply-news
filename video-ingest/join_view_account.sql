@@ -10,5 +10,15 @@ SELECT
 FROM "bedrock-hellmar"."m6web_core_fact_beneficiaries_v1" v
 LEFT OUTER JOIN "bedrock-hellmar"."m6web_core_dim_users_v1" u
 ON u.account_id = v.account_id
-WHERE d_date <= '2019-09-17'
+WHERE d_date >= '2019-06-01' AND d_date <= '2019-08-31'
                                                
+2  WHERE d_date >= '2019-09-01' AND d_date <= '2019-10-31'
+3  WHERE d_date >= '2019-11-01' AND d_date <= '2019-12-31'
+4  WHERE d_date >= '2020-01-01' AND d_date <= '2020-02-29'
+5  WHERE d_date >= '2020-03-01' AND d_date <= '2020-04-30'
+6  WHERE d_date >= '2020-05-01' AND d_date <= '2020-06-30'
+7  WHERE d_date >= '2020-07-01' AND d_date <= '2020-08-31'
+8  WHERE d_date >= '2020-09-01' AND d_date <= '2020-10-31'
+9  WHERE d_date >= '2020-11-01' AND d_date <= '2020-12-31'
+10 WHERE d_date >= '2021-01-01' AND d_date <= '2021-02-28'
+                                                                                                                                                                                                                                                                                                                                                                                                                                       
