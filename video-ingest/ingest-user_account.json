@@ -25,7 +25,7 @@
     },
     "tuningConfig": {
       "type": "index",
-      "maxRowsPerSegment": 100000000,
+      "maxRowsPerSegment": 2000000,
       "maxRowsInMemory": 1000000,
       "indexSpec": {
         "segmentLoader": {
