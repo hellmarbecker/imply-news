@@ -19,7 +19,6 @@ for DATE in $LINES; do
     $ELB_URL/druid/indexer/v1/task | jq .task | tr -d \" )
   echo $DATE - $TASK_ID
 
-  exit
   sleep 4
 
 #  exit
