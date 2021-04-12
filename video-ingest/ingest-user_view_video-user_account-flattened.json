@@ -161,7 +161,7 @@
       ],
       "granularitySpec": {
         "type": "uniform",
-        "segmentGranularity": "WEEK",
+        "segmentGranularity": "DAY",
         "queryGranularity": "DAY",
         "rollup": true,
         "intervals": []
@@ -273,7 +273,7 @@
       "reportParseExceptions": false,
       "pushTimeout": 0,
       "segmentWriteOutMediumFactory": null,
-      "maxNumConcurrentSubTasks": 5,
+      "maxNumConcurrentSubTasks": 20,
       "maxRetry": 999,
       "taskStatusCheckPeriodMs": 1000,
       "chatHandlerTimeout": "PT10S",

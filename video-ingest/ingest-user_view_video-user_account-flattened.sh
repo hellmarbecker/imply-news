@@ -1,9 +1,12 @@
 #!/bin/bash
 
-DATASOURCE=user_view_video_user_account_flattened
+DATASOURCE=view_account_flattened
 
 LINES=$(cat ./datelist-user_view_video)
 ELB_URL="https://imply-b18-elbexter-63dmtx8lxpcb-1363504918.us-east-1.elb.amazonaws.com:9088"
+
+#maxdays=3
+#let i=0
 
 for DATE in $LINES; do
 
@@ -20,6 +23,11 @@ for DATE in $LINES; do
   echo $DATE - $TASK_ID
 
   sleep 4
+
+#  let i++
+#  if [[ $i -gt $maxdays ]]; then
+#    break
+#  fi
 
 #  exit
 #  while
