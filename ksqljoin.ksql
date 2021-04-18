@@ -1,25 +1,28 @@
 SET 'auto.offset.reset'='earliest';
 
-CREATE STREAM "test-fact" (
+CREATE STREAM test_fact (
   uid INTEGER KEY,
   timeIngest VARCHAR, 
   timeEvent VARCHAR, 
   measure1 INTEGER
 )
-WITH (kafka_topic='test-fact', value_format='json', partitions=1);
+WITH (kafka_topic='test-fact', value_format='json', partitions=1, timestamp='timeEvent');
 
-CREATE TABLE "test-dim" (
+CREATE TABLE test_dim (
   uid INTEGER PRIMARY KEY,
   timeIngest VARCHAR, 
   timeEvent VARCHAR,
   dimValue VARCHAR
 )
-WITH (kafka_topic='test-dim', value_format='json', partitions=1);
+WITH (kafka_topic='test-dim', value_format='json', partitions=1, timestamp='timeEvent');
 
-CREATE STREAM "test-flattened" WITH (value_format='json', partitions=1, timestamp='timeEvent') AS
+CREATE TABLE test_dim_mt AS
+SELECT * FROM test_dim;
+
+CREATE STREAM test_flattened WITH (value_format='json', partitions=1, timestamp='timeEvent') AS
 SELECT
   f.*,
-  d."timeEvent" AS "timeDim",
-  d."dimValue"
-FROM "test-fact" f
-JOIN "test-dim" d ON f.uid = d.uid;
+  d.timeEvent AS timeDim,
+  d.dimValue
+FROM test_fact f
+JOIN test_dim d ON f.uid = d.uid;
