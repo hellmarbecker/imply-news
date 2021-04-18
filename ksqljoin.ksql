@@ -6,7 +6,7 @@ CREATE STREAM test_fact (
   timeEvent VARCHAR, 
   measure1 INTEGER
 )
-WITH (kafka_topic='test-fact', value_format='json', partitions=1, timestamp='timeEvent');
+WITH (kafka_topic='test-fact', value_format='json', partitions=1, timestamp='timeEvent', timestamp_format='ISO_LOCAL_DATE_TIME');
 
 CREATE TABLE test_dim (
   uid INTEGER PRIMARY KEY,
@@ -14,7 +14,7 @@ CREATE TABLE test_dim (
   timeEvent VARCHAR,
   dimValue VARCHAR
 )
-WITH (kafka_topic='test-dim', value_format='json', partitions=1, timestamp='timeEvent');
+WITH (kafka_topic='test-dim', value_format='json', partitions=1, timestamp='timeEvent', timestamp_format='ISO_LOCAL_DATE_TIME');
 
 CREATE TABLE test_dim_mt AS
 SELECT * FROM test_dim;
