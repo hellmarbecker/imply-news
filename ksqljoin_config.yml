@@ -1,0 +1,7 @@
+# Try to include optional files. Any settings in these files override the main settings.
+IncludeOptional: []
+General:
+    factTopic: "test-fact"
+    dimTopic: "test-dim"
+Kafka:
+    bootstrap.servers: 'localhost:29092'

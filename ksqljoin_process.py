@@ -24,25 +24,28 @@ def emit(producer, topic, emitRecord):
         producer.poll(0)
 
 def emitFact(p, t, k):
-    ts = datetime.datetime.now().replace(microsecond=0).isoformat()
+    tNow = datetime.datetime.now().replace(microsecond=0)
+    tsIngest = tNow.isoformat()
+    dtDelay = datetime.timedelta(seconds=fake.random_int(min=0, max=20))
+    tsEvent = (tNow - dtDelay).isoformat()
     emitRecord = {
         key_field : k,
         'timeIngest' : tsIngest,
         'timeEvent' : tsEvent,
-        'measure1' : 
+        'measure1' : fake.random_int(min=0, max=100)
     }
     emit(p, t, emitRecord)
 
 def emitDimChange(p, t, k):
-    ts = datetime.datetime.now().replace(microsecond=0).isoformat()
+    tNow = datetime.datetime.now().replace(microsecond=0)
+    tsIngest = tNow.isoformat()
+    tsEvent = tsIngest
     emitRecord = {
         key_field : k,
         'timeIngest' : tsIngest,
         'timeEvent' : tsEvent,
-        'dimValue' : fake.city(20)
+        'dimValue' : fake.city()
     }
-    # explode and pivot the states visited
-    emitRecord.update( { t : (t in s.statesVisited) for t in s.states } )
     emit(p, t, emitRecord)
 
 # Read configuration
@@ -99,15 +102,19 @@ def main():
         logging.debug(f'Kafka client configuration: {kafkaconf}')
         producer = Producer(kafkaconf)
 
-    while True:
+    for i in range (0, 100):
         logging.debug('Top of loop')
-        logging.debug(f'Total elements in list: {len(allSessions)}')
 
-        emitClick(producer, factTopic, newSession)
+        kf = fake.random_int(min=1, max=3)
+        dimChange = (fake.random_digit() == 0)
+        if dimChange:
+            emitDimChange(producer, dimTopic, kf)
+        else:
+            emitFact(producer, factTopic, kf)
         if not args.quiet:
             sys.stderr.write('.')
             sys.stderr.flush()
-        time.sleep(random.uniform(0.001, 0.02))
+        time.sleep(1)
         
 
 if __name__ == "__main__":
