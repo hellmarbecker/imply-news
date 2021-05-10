@@ -1,0 +1,7 @@
+{
+  "specialMeasures": {
+    "Two Week Intersection": "SELECT\n  THETA_SKETCH_ESTIMATE(\n    THETA_SKETCH_INTERSECT(\n      APPROX_COUNT_DISTINCT_DS_THETA(upm_id_thetasketch) FILTER (WHERE (stream_view_count > 0 or inbox_view_count > 0 or thread_view_count > 0) and %{StartDate}% - INTERVAL '14' DAY <= __time and __time < %{StartDate}% - INTERVAL '7' DAY),\n      APPROX_COUNT_DISTINCT_DS_THETA(upm_id_thetasketch) FILTER (WHERE (stream_view_count > 0 or inbox_view_count > 0 or thread_view_count > 0) and %{StartDate}% - INTERVAL '7' DAY <= __time and __time < %{StartDate}%)\n    )\n  )\nFROM \"%{Table}%\"\nWHERE %{TimelessFilter}% AND %{StartDate}% - INTERVAL '14' DAY <= __time and __time < %{StartDate}%",
+    "Current Week": "SELECT APPROX_COUNT_DISTINCT_DS_THETA(upm_id_thetasketch) FILTER (WHERE (stream_view_count > 0 or inbox_view_count > 0 or thread_view_count > 0) and %{StartDate}% - INTERVAL '7' DAY <= __time and __time < %{StartDate}%)\nFROM \"%{Table}%\"\nWHERE %{TimelessFilter}% AND %{StartDate}% - INTERVAL '7' DAY <= __time and __time < %{StartDate}%",
+    "Prior Week": "SELECT APPROX_COUNT_DISTINCT_DS_THETA(upm_id_thetasketch) FILTER (WHERE (stream_view_count > 0 or inbox_view_count > 0 or thread_view_count > 0) and  %{StartDate}% - INTERVAL '14' DAY <= __time and __time < %{StartDate}% - INTERVAL '7' DAY)\nFROM \"%{Table}%\"\nWHERE %{TimelessFilter}% AND %{StartDate}% - INTERVAL '14' DAY <= __time and __time < %{StartDate}% - INTERVAL '7' DAY"
+  }
+}
