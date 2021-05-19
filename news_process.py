@@ -67,14 +67,21 @@ class Session:
     def url(self):
         return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
 
+msgCount = 0
+
 # Output functions - write to Kafka, or to stdout as JSON
 
 def emit(producer, topic, emitRecord):
+    global msgCount
     sid = emitRecord['sid']
     if producer is None:
         print(f'{sid}|{json.dumps(emitRecord)}')
     else:
         producer.produce(topic, key=str(sid), value=json.dumps(emitRecord))
+        msgCount += 1
+        if msgCount >= 2000:
+            producer.flush()
+            msgCount = 0
         producer.poll(0)
 
 def emitClick(p, t, s):
@@ -239,7 +246,7 @@ def main():
             # Here we end up when the session was in exit state
             logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)
-        # time.sleep(random.uniform(0.00001, 0.0002))
+        time.sleep(random.uniform(0.000005, 0.00002))
         
 
 if __name__ == "__main__":
