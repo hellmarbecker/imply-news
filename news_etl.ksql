@@ -1,0 +1,3 @@
+-- create a raw stream from input data
+
+create stream "imply-news-raw" ( sid bigint key, payload string ) with ( kafka_topic='imply-news', key_format='KAFKA', value_format='KAFKA' );
