@@ -194,6 +194,13 @@ def main():
         logging.debug(f'Kafka client configuration: {kafkaconf}')
         producer = Producer(kafkaconf)
 
+    minSleep = config['General']['minSleep']
+    if minSleep is None:
+        minSleep = 0.01
+    maxSleep = config['General']['maxSleep']
+    if maxSleep is None:
+        maxSleep = 0.04
+
     maxSessions = config['General']['maxSessions']
     if maxSessions is None:
         maxSessions = 50000
@@ -246,7 +253,7 @@ def main():
             # Here we end up when the session was in exit state
             logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)
-        time.sleep(random.uniform(0.000005, 0.00002))
+        time.sleep(random.uniform(0.000010, 0.00004))
         
 
 if __name__ == "__main__":
