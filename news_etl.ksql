@@ -8,3 +8,8 @@ select sid, payload, extractjsonfield(payload, '$.recordType') as recordtype
 from "imply-news-raw" 
 where extractjsonfield(payload, '$.recordType') = 'session' 
 emit changes;
+
+-- implement topic splitter
+
+create stream "imply-news-sessions" as select sid, payload from "imply-news-raw" where extractjsonfield(payload, '$.recordType') = 'session';
+create stream "imply-news-clicks" as select sid, payload from "imply-news-raw" where extractjsonfield(payload, '$.recordType') = 'click';
