@@ -18,6 +18,7 @@ d_channel = { 'social media': 0.3, 'organic search': 0.2, 'paid search': 0.3, 'd
 d_campaign = { 'fb-1 Be Informed': 0.3, 'fb-2 US Election': 0.4, 'af-1 Latest News': 0.2, 'google-1 Be Informed': 0.1 }
 d_gender = { 'm': 0.5, 'w': 0.5 }
 d_age = { '18-25': 0.1, '26-35': 0.1, '36-50': 0.4, '51-60': 0.3, '61+': 0.1 }
+d_statuscode = { '200': 0.9, '404': 0.05, '500': 0.05 }
 l_content = "News Comment World Business Sport Puzzle Law".split()
 
 # Attribute selector function
@@ -89,9 +90,11 @@ def emitClick(p, t, s):
         'timestamp' : time.time(),
         'recordType' : 'click',
         'url' : s.url(),
+        'statuscode' : selectAttr(d_statuscode),
         'state' : s.state,
         'statesVisited' : str(s.statesVisited),
         'sid' : s.sid,
+        'uid' : s.uid,
         'campaign' : s.campaign,
         'channel' : s.channel,
         'contentId' : s.contentId,
@@ -106,6 +109,7 @@ def emitSession(p, t, s):
         'timestamp' : s.startTime,
         'recordType' : 'session',
         'sid' : s.sid,
+        'uid' : s.uid,
         'campaign' : s.campaign,
         'channel' : s.channel,
         'gender' : s.gender,
@@ -221,6 +225,7 @@ def main():
             newSession = Session(
                 States, States[0], StateTransitionMatrix,
                 sid = sessionId,
+                uid = fake.numerify('%###'), # 1000..9999
                 campaign = selectAttr(d_campaign),
                 channel = selectAttr(d_channel),
                 contentId = random.choice(l_content),
