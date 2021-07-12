@@ -90,6 +90,7 @@ def emitClick(p, t, s):
         'timestamp' : time.time(),
         'recordType' : 'click',
         'url' : s.url(),
+        'useragent' : s.useragent,
         'statuscode' : selectAttr(d_statuscode),
         'state' : s.state,
         'statesVisited' : str(s.statesVisited),
@@ -108,6 +109,7 @@ def emitSession(p, t, s):
     emitRecord = {
         'timestamp' : s.startTime,
         'recordType' : 'session',
+        'useragent' : s.useragent,
         'sid' : s.sid,
         'uid' : s.uid,
         'campaign' : s.campaign,
@@ -224,6 +226,7 @@ def main():
             StateTransitionMatrix = config['StateMachine']['StateTransitionMatrix'][selector]
             newSession = Session(
                 States, States[0], StateTransitionMatrix,
+                useragent = fake.user_agent(),
                 sid = sessionId,
                 uid = fake.numerify('%###'), # 1000..9999
                 campaign = selectAttr(d_campaign),
