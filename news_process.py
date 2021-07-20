@@ -68,7 +68,7 @@ class Session:
         self.statesVisited.add(newState)
 
     def url(self):
-        return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId
+        return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId.replace(' ', '-')
 
 msgCount = 0
 
