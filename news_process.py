@@ -62,6 +62,8 @@ class Session:
         if self.startTime is None:
             self.startTime = self.eventTime
         logging.debug(f'advance(): from {self.state} to {newState}')
+        contentId = random.choice(l_content)
+        subContentId = fake.text(20)
         self.state = newState
         self.statesVisited.add(newState)
 
@@ -93,7 +95,6 @@ def emitClick(p, t, s):
         'useragent' : s.useragent,
         'statuscode' : selectAttr(d_statuscode),
         'state' : s.state,
-        'statesVisited' : str(s.statesVisited),
         'sid' : s.sid,
         'uid' : s.uid,
         'campaign' : s.campaign,
@@ -110,6 +111,7 @@ def emitSession(p, t, s):
         'timestamp' : s.startTime,
         'recordType' : 'session',
         'useragent' : s.useragent,
+        'statesVisited' : list(s.statesVisited), # cumulative state, unordered
         'sid' : s.sid,
         'uid' : s.uid,
         'campaign' : s.campaign,
