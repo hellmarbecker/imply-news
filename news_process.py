@@ -263,7 +263,7 @@ def main():
             # Here we end up when the session was in exit state
             logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)
-        time.sleep(random.uniform(0.000010, 0.00004))
+        time.sleep(random.uniform(0.00010, 0.0004))
         
 
 if __name__ == "__main__":
