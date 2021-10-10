@@ -46,7 +46,7 @@ class Session:
         self.startTime = None # this is set upon the first advance() to match the first eventTime
         self.states = states
         self.state = initialState
-        self.statesVisited = { initialState }
+        self.statesVisited = [ initialState ] # this is going to be an ordered list of all the session states we visited in this session
         self.stateTransitionMatrix = stateTransitionMatrix
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -65,7 +65,7 @@ class Session:
         contentId = random.choice(l_content)
         subContentId = fake.text(20)
         self.state = newState
-        self.statesVisited.add(newState)
+        self.statesVisited.append(newState)
 
     def url(self):
         return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId.replace(' ', '-')
@@ -95,6 +95,7 @@ def emitClick(p, t, s):
         'useragent' : s.useragent,
         'statuscode' : selectAttr(d_statuscode),
         'state' : s.state,
+        'statesVisited' : s.statesVisited, # cumulative state, ordered
         'sid' : s.sid,
         'uid' : s.uid,
         'campaign' : s.campaign,
@@ -224,13 +225,17 @@ def main():
             sessionId += 1
             logging.debug(f'--> Creating Session: id {sessionId}')
             salesAmount = random.uniform(10.0, 90.0);
+
+            # Pick the right transition matrix for the mode we are running in
             States = config['StateMachine']['States']
             StateTransitionMatrix = config['StateMachine']['StateTransitionMatrix'][selector]
+
+            # The new session will start on the home page and it will be assigned a random user ID
             newSession = Session(
                 States, States[0], StateTransitionMatrix,
                 useragent = fake.user_agent(),
                 sid = sessionId,
-                uid = fake.numerify('%###'), # 1000..9999
+                uid = fake.numerify('%####'), # 10000..99999
                 campaign = selectAttr(d_campaign),
                 channel = selectAttr(d_channel),
                 contentId = random.choice(l_content),
@@ -256,14 +261,14 @@ def main():
         except IndexError:
             logging.debug('--> No sessions to choose from')
         except KeyError:
-            emitSession(producer, sessionTopic, thisSession)
+            # emitSession(producer, sessionTopic, thisSession)
             if not args.quiet:
                 sys.stderr.write(':')
                 sys.stderr.flush()
             # Here we end up when the session was in exit state
             logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)
-        time.sleep(random.uniform(0.00010, 0.0004))
+        time.sleep(random.uniform(minSleep, maxSleep))
         
 
 if __name__ == "__main__":

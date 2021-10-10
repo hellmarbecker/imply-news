@@ -160,7 +160,7 @@ def main():
             #emitMovie(...)
         thisMovie = fake.random_element(d_movies)
 
-        print(f'{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timeX))},{thatMovie},{thisMovie},{"|".join(thoseTags)}')
+        print(f'{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timeX))},{thatMovie},{"|".join(thoseTags)}')
         time.sleep(0.1)
         timeX += 60
 
