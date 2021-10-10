@@ -1,0 +1,36 @@
+# Try to include optional files. Any settings in these files override the main settings.
+IncludeOptional:
+    # Secure Kafka settings
+    - news_secret.yml
+General:
+    # Maximum number of sessions that can be open in the simulator at the same time
+    maxSessions: 5
+    minSleep: 0.5
+    maxSleep: 0.5
+    # clickTopic and sessionTopic can be the same
+    clickTopic: "imply-news"
+    sessionTopic: "imply-news"
+Kafka:
+    bootstrap.servers: 'localhost:9092'
+StateMachine:
+    States: [ 'home', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
+    # exitState: 'exitSession'
+    # -- no need to specify the exit state explicitly; any state that does not exist as a row key in the transition matrix is an exit state
+    StateTransitionMatrix:
+        # Transition probabilities. For each mode there is a separate transition matrix. Probabilities in each row must add up to 1.
+        default: {
+            'home':          { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.30 },
+            'content':       { 'home': 0.15, 'content': 0.45, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+            'clickbait':     { 'home': 0.10, 'content': 0.10, 'clickbait': 0.50, 'subscribe': 0.02, 'plusContent': 0.16, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+            'subscribe':     { 'home': 0.10, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.02, 'plusContent': 0.50, 'affiliateLink': 0.02, 'exitSession': 0.16 },
+            'plusContent':   { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.02, 'plusContent': 0.40, 'affiliateLink': 0.02, 'exitSession': 0.10 },
+            'affiliateLink': { 'home': 0.20, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.00, 'plusContent': 0.05, 'affiliateLink': 0.00, 'exitSession': 0.55 }
+        }
+        after_fix: {
+            'home':          { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.06, 'plusContent': 0.26, 'affiliateLink': 0.02, 'exitSession': 0.20 },
+            'content':       { 'home': 0.15, 'content': 0.45, 'clickbait': 0.06, 'subscribe': 0.06, 'plusContent': 0.20, 'affiliateLink': 0.02, 'exitSession': 0.06 },
+            'clickbait':     { 'home': 0.10, 'content': 0.10, 'clickbait': 0.50, 'subscribe': 0.06, 'plusContent': 0.16, 'affiliateLink': 0.02, 'exitSession': 0.06 },
+            'subscribe':     { 'home': 0.10, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.06, 'plusContent': 0.50, 'affiliateLink': 0.02, 'exitSession': 0.12 },
+            'plusContent':   { 'home': 0.10, 'content': 0.30, 'clickbait': 0.06, 'subscribe': 0.06, 'plusContent': 0.40, 'affiliateLink': 0.02, 'exitSession': 0.06 },
+            'affiliateLink': { 'home': 0.20, 'content': 0.20, 'clickbait': 0.00, 'subscribe': 0.00, 'plusContent': 0.05, 'affiliateLink': 0.00, 'exitSession': 0.55 }
+        }
