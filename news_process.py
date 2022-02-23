@@ -103,7 +103,12 @@ def emitClick(p, t, s):
         'contentId' : s.contentId,
         'subContentId' : s.subContentId,
         'gender' : s.gender,
-        'age' : s.age
+        'age' : s.age,
+        'latitude' : s.place[0],
+        'longitude' : s.place[1],
+        'place_name' : s.place[2],
+        'country_code' : s.place[3],
+        'timezone' : s.place[4]
     }
     emit(p, t, emitRecord)
 
@@ -118,7 +123,12 @@ def emitSession(p, t, s):
         'campaign' : s.campaign,
         'channel' : s.channel,
         'gender' : s.gender,
-        'age' : s.age
+        'age' : s.age,
+        'latitude' : s.place[0],
+        'longitude' : s.place[1],
+        'place_name' : s.place[2],
+        'country_code' : s.place[3],
+        'timezone' : s.place[4]
     }
     # explode and pivot the states visited
     emitRecord.update( { t : (t in s.statesVisited) for t in s.states } )
@@ -241,7 +251,8 @@ def main():
                 contentId = random.choice(l_content),
                 subContentId = fake.text(20),
                 gender = selectAttr(d_gender),
-                age = selectAttr(d_age)
+                age = selectAttr(d_age),
+                place = fake.location_on_land()
             )
             emitClick(producer, clickTopic, newSession)
             if not args.quiet:
