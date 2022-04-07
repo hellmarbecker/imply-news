@@ -272,7 +272,7 @@ def main():
         except IndexError:
             logging.debug('--> No sessions to choose from')
         except KeyError:
-            # emitSession(producer, sessionTopic, thisSession)
+            emitSession(producer, sessionTopic, thisSession)
             if not args.quiet:
                 sys.stderr.write(':')
                 sys.stderr.flush()
