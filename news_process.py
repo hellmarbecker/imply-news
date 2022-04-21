@@ -98,6 +98,7 @@ def emitClick(p, t, s):
         'statesVisited' : s.statesVisited, # cumulative state, ordered
         'sid' : s.sid,
         'uid' : s.uid,
+        'isSubscriber' : s.isSubscriber,
         'campaign' : s.campaign,
         'channel' : s.channel,
         'contentId' : s.contentId,
@@ -120,6 +121,7 @@ def emitSession(p, t, s):
         'statesVisited' : list(s.statesVisited), # cumulative state, unordered
         'sid' : s.sid,
         'uid' : s.uid,
+        'isSubscriber' : s.isSubscriber,
         'campaign' : s.campaign,
         'channel' : s.channel,
         'gender' : s.gender,
@@ -246,6 +248,7 @@ def main():
                 useragent = fake.user_agent(),
                 sid = sessionId,
                 uid = fake.numerify('%####'), # 10000..99999
+                isSubscriber = fake.boolean(chance_of_getting_true=5),
                 campaign = selectAttr(d_campaign),
                 channel = selectAttr(d_channel),
                 contentId = random.choice(l_content),

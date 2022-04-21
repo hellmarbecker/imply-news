@@ -173,7 +173,7 @@ done
 shift $((OPTIND -1))
 
 COMMAND_NORMAL="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG -m default"
-COMMAND_ABNORMAL="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG -m after_fix"
+COMMAND_ABNORMAL="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG -m special"
 # echo $COMMAND_NORMAL
 # echo "$1"
 # exit 1
@@ -188,6 +188,10 @@ case "$1" in
     'restart')
             stop ; echo "Sleeping..."; sleep 1 ;
             start_normal
+            ;;
+    'restartSpecial')
+            stop ; echo "Sleeping..."; sleep 1 ;
+            start_abnormal
             ;;
     'status')
             status
