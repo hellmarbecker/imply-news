@@ -63,7 +63,7 @@ class Session:
             self.startTime = self.eventTime
         logging.debug(f'advance(): from {self.state} to {newState}')
         contentId = random.choice(l_content)
-        subContentId = fake.text(20)
+        subContentId = fake.sentence(nb_words=6)[:-1]
         self.state = newState
         self.statesVisited.append(newState)
 
@@ -249,7 +249,7 @@ def main():
                 campaign = selectAttr(d_campaign),
                 channel = selectAttr(d_channel),
                 contentId = random.choice(l_content),
-                subContentId = fake.text(20),
+                subContentId = fake.sentence(nb_words=6)[:-1],
                 gender = selectAttr(d_gender),
                 age = selectAttr(d_age),
                 place = fake.location_on_land()
