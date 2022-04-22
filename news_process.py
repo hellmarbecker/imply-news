@@ -133,7 +133,7 @@ def emitSession(p, t, s):
         'timezone' : s.place[4]
     }
     # explode and pivot the states visited
-    emitRecord.update( { t : (t in s.statesVisited) for t in s.states } )
+    emitRecord.update( { t : (int(t in s.statesVisited)) for t in s.states } )
     emit(p, t, emitRecord)
 
 # Check configuration
@@ -248,7 +248,7 @@ def main():
                 useragent = fake.user_agent(),
                 sid = sessionId,
                 uid = fake.numerify('%####'), # 10000..99999
-                isSubscriber = fake.boolean(chance_of_getting_true=5),
+                isSubscriber = int(fake.boolean(chance_of_getting_true=5)),
                 campaign = selectAttr(d_campaign),
                 channel = selectAttr(d_channel),
                 contentId = random.choice(l_content),
