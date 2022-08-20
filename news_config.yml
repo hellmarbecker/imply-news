@@ -11,7 +11,7 @@ General:
     clickTopic: "imply-news"
     sessionTopic: "imply-news"
 Kafka:
-        bootstrap.servers: "localhost:9092"
+    bootstrap.servers: "localhost:9092"
 StateMachine:
     States: [ 'home', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
     # exitState: 'exitSession'
