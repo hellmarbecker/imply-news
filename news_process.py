@@ -6,7 +6,7 @@ import argparse, sys, logging
 import socket
 from faker import Faker
 from confluent_kafka import Producer
-from exceptions import InvalidStateException, InvalidTransitionException
+
 
 baseurl = "https://imply-news.com"
 fake = Faker()
@@ -22,6 +22,17 @@ fake = Faker()
 
 d_statuscode = { '200': 0.9, '404': 0.05, '500': 0.05 }
 l_content = "News Comment World Business Sport Puzzle Law".split()
+
+# Exception classes
+
+class DataGeneratorError(Exception):
+    "Base exception for this project, all exceptions that can be raised inherit from this class."
+
+class InvalidStateException(DataGeneratorError):
+    "The current model state value is not mapped to a state definition."
+
+class InvalidTransitionException(DataGeneratorError):
+    "No legal transition."
 
 # Attribute selector function
 
@@ -230,6 +241,8 @@ def main():
     sessionId = 0
     allSessions = []
 
+    timeEnvelope = config['ModeConfig'][selector]['timeEnvelope'] # array with 24 values
+
     while True:
         logging.debug('Top of loop')
         logging.debug(f'Total elements in list: {len(allSessions)}')
@@ -284,7 +297,15 @@ def main():
             # Here we end up when the session was in exit state
             logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)
-        time.sleep(random.uniform(minSleep, maxSleep))
+        tm = time.gmtime()
+        weight = (timeEnvelope[(tm.tm_hour + 1) % 24] * tm.tm_min + timeEnvelope[tm.tm_hour] * (60 - tm.tm_min)) / 60.0 # this should be between 0 and 1000
+        logging.debug(f'envelope values: {timeEnvelope[tm.tm_hour]}, {timeEnvelope[(tm.tm_hour + 1) % 24]}')
+        logging.debug(f'weight from envelope: {weight}')
+        waitSecs = random.uniform(minSleep, maxSleep) 
+        if weight > 0:
+            waitSecs = waitSecs * 1000.0 / weight
+        logging.debug(f'wait time: {waitSecs}')
+        time.sleep(waitSecs)
         
 
 if __name__ == "__main__":
