@@ -28,6 +28,11 @@ This file is automatically included if it is present. Do not check secrets into 
 Python packages:
 - Faker
 - confluent_kafka
+- scipy
+
+### Time envelope
+
+The `timeEnvelope` setting must be an array of 24 values, each between 0 and 1000. These are relative data generation frequencies per hour of day. Frequency values will be interpolated using cubic splines, which is what `scipy` is used for.
 
 ### Components of the news data generator
 

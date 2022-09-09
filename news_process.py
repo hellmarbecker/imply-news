@@ -1,6 +1,7 @@
 import yaml
 import json
 import random
+from scipy import interpolate
 import time
 import argparse, sys, logging
 import socket
@@ -242,6 +243,10 @@ def main():
     allSessions = []
 
     timeEnvelope = config['ModeConfig'][selector]['timeEnvelope'] # array with 24 values
+    # set up the spline interpolator
+    xi = list(range(-24, 48)) # 3 times 24 hours, we are going to use only the [0, 24) part
+    yi = timeEnvelope + timeEnvelope + timeEnvelope # 3 times the envelope so the middle part is stitched smoothly at the edges
+    tck = interpolate.splrep(xi, yi)
 
     while True:
         logging.debug('Top of loop')
@@ -298,7 +303,10 @@ def main():
             logging.debug(f'--> removing session id {thisSession.sid}')
             allSessions.remove(thisSession)
         tm = time.gmtime()
-        weight = (timeEnvelope[(tm.tm_hour + 1) % 24] * tm.tm_min + timeEnvelope[tm.tm_hour] * (60 - tm.tm_min)) / 60.0 # this should be between 0 and 1000
+        # code for linear interpolation
+        # weight = (timeEnvelope[(tm.tm_hour + 1) % 24] * tm.tm_min + timeEnvelope[tm.tm_hour] * (60 - tm.tm_min)) / 60.0 # this should be between 0 and 1000
+        # but use spline instead:
+        weight = interpolate.splev(tm.tm_hour + tm.tm_min / 60.0 + tm.tm_sec / 3600.0, tck)
         logging.debug(f'envelope values: {timeEnvelope[tm.tm_hour]}, {timeEnvelope[(tm.tm_hour + 1) % 24]}')
         logging.debug(f'weight from envelope: {weight}')
         waitSecs = random.uniform(minSleep, maxSleep) 
