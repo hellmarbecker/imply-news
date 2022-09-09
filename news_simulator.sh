@@ -2,7 +2,7 @@
 #
 # Based on code by ahadjidj
 
-BASE=~/imply-shop
+BASE=~/imply-news
 PID=/tmp/news_simulator.pid
 NORMAL=/tmp/normal.flag
 ABNORMAL=/tmp/abnormal.flag
