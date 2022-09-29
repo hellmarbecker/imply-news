@@ -21,5 +21,5 @@
 # For more information see the manual pages of crontab(5) and cron(8)
 # 
 # m h  dom mon dow   command
-00 05 * * 05 ( cd /home/admin/imply-news && ./news_simulator.sh restartSpecial >/dev/null )
-00 10 * * 05 ( cd /home/admin/imply-news && ./news_simulator.sh restart >/dev/null )
+00 07 * * 05 ( cd /home/admin/imply-news && ./news_simulator.sh restartSpecial >/dev/null )
+00 11 * * 05 ( cd /home/admin/imply-news && ./news_simulator.sh restart >/dev/null )
