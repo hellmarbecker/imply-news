@@ -6,7 +6,7 @@ This simulates data for a news outlet. It has free and premium content, a subscr
 
 The state machine is controlled by a transition matrix, this implementation does not use an external library.
 
-While the possible states are always the same, different transition matrices can exist (to model the compelling switching event.) The entire configuration is in YAML format and is held in `news_config.yaml`.
+While the possible states are always the same, different transition matrices can exist (to model the compelling switching event.) The entire configuration is in YAML format and is held in `news_config.yml`.
 
 The transition matrices are organized as a dictionary, there should be an entry with key `"default"`.
 
