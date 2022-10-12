@@ -49,6 +49,16 @@ CREATE OR REPLACE STREAM `imply-news-cooked` (
 )
 WITH ( KAFKA_TOPIC='imply-news-clicks', KEY_FORMAT='KAFKA', VALUE_FORMAT='JSON' );
 
+-- Filter by a JSON column
+
+CREATE OR REPLACE STREAM `imply-news-de` WITH (
+  KAFKA_TOPIC='imply-news-de',
+  KEY_FORMAT='KAFKA',
+  VALUE_FORMAT='JSON' ) AS
+SELECT *
+FROM `imply-news-cooked`
+WHERE `country_code` = 'DE';
+
 -- Transform to AVRO
 -- This creates a schema registry entry
 
