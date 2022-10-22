@@ -19,7 +19,7 @@ SELECT
   `sid`,
   `payload` 
 FROM `imply-news-raw` 
-WHERE extractjsonfield(`payload`, '$.recordType') = 'click';
+WHERE EXTRACTJSONFIELD(`payload`, '$.recordType') = 'click';
 
 -- Reinterpret the stream:
 -- This is possible because now we have homogenous data.
