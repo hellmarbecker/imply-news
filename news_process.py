@@ -5,6 +5,7 @@ from scipy import interpolate
 import time
 import argparse, sys, logging
 import socket
+import signal
 from faker import Faker
 from confluent_kafka import Producer
 
@@ -23,6 +24,15 @@ fake = Faker()
 
 d_statuscode = { '200': 0.9, '404': 0.05, '500': 0.05 }
 l_content = "News Comment World Business Sport Puzzle Law".split()
+
+reconfigure = False
+
+# Signal handlers
+
+def hupHandler(signum, frame):
+    global reconfigure
+    reconfigure = True
+    logging.debug("in signal handler: SIGHUP received!")
 
 # Exception classes
 
@@ -195,12 +205,24 @@ def readConfig(ifn):
 
 def main():
 
+    global reconfigure
+
+    # Install signal handlers
+
+    # SIGHUP triggers a config reread
+    signal.signal(signal.SIGHUP, hupHandler)
+
+    # SIGUSR1 is used as a live check signal - ignore and just use the return code of kill(1) in the watchdog
+    signal.signal(signal.SIGUSR1, signal.SIG_IGN)
+
+    # Parse command line arguments
+
     logLevel = logging.INFO
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', help='Enable debug logging', action='store_true')
     parser.add_argument('-q', '--quiet', help='Quiet mode (overrides Debug mode)', action='store_true')
     parser.add_argument('-f', '--config', help='Configuration file for session state machine(s)', required=True)
-    parser.add_argument('-m', '--mode', help='Mode for session state machine(s)', default='default')
+    # parser.add_argument('-m', '--mode', help='Mode for session state machine(s)', default='default')
     parser.add_argument('-n', '--dry-run', help='Write to stdout instead of Kafka',  action='store_true')
     args = parser.parse_args()
 
@@ -212,108 +234,121 @@ def main():
     logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=logLevel)
 
     cfgfile = args.config
-    config = readConfig(cfgfile)
-    # sys.exit(0)
-    selector = args.mode
 
-    if args.dry_run:
-        producer = None
-        clickTopic = None
-        sessionTopic = None
-    else:
-        clickTopic = config['General']['clickTopic']
-        sessionTopic = config['General']['sessionTopic']
-        logging.debug(f'clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
-        kafkaconf = config['Kafka']
-        kafkaconf['client.id'] = socket.gethostname()
-        logging.debug(f'Kafka client configuration: {kafkaconf}')
-        producer = Producer(kafkaconf)
-
-    minSleep = config['General']['minSleep']
-    if minSleep is None:
-        minSleep = 0.01
-    maxSleep = config['General']['maxSleep']
-    if maxSleep is None:
-        maxSleep = 0.04
-
-    maxSessions = config['General']['maxSessions']
-    if maxSessions is None:
-        maxSessions = 50000
     sessionId = 0
     allSessions = []
 
-    timeEnvelope = config['ModeConfig'][selector]['timeEnvelope'] # array with 24 values
-    # set up the spline interpolator
-    xi = list(range(-24, 48)) # 3 times 24 hours, we are going to use only the [0, 24) part
-    yi = timeEnvelope + timeEnvelope + timeEnvelope # 3 times the envelope so the middle part is stitched smoothly at the edges
-    tck = interpolate.splrep(xi, yi)
-
     while True:
-        logging.debug('Top of loop')
-        logging.debug(f'Total elements in list: {len(allSessions)}')
-        logging.debug(f'state selector: {selector}')
-        # With a certain probability, create a new session
-        if random.random() < 0.5 and len(allSessions) < maxSessions:
-            sessionId += 1
-            logging.debug(f'--> Creating Session: id {sessionId}')
-            salesAmount = random.uniform(10.0, 90.0);
 
-            # Pick the right transition matrix for the mode we are running in
-            States = config['StateMachine']['States']
-            StateTransitionMatrix = config['StateMachine']['StateTransitionMatrix'][selector]
+        config = readConfig(cfgfile)
+        allModes = config['ModeConfig'].keys()
+        logging.debug(f'available modes: {allModes}')
 
-            # The new session will start on the home page and it will be assigned a random user ID
-            newSession = Session(
-                States, States[0], StateTransitionMatrix,
-                useragent = fake.user_agent(),
-                sid = sessionId,
-                uid = fake.numerify('%####'), # 10000..99999
-                isSubscriber = int(fake.boolean(chance_of_getting_true=5)),
-                campaign = selectAttr(config['ModeConfig'][selector]['campaign']),
-                channel = selectAttr(config['ModeConfig'][selector]['channel']),
-                contentId = random.choice(l_content),
-                subContentId = fake.sentence(nb_words=6)[:-1],
-                gender = selectAttr(config['ModeConfig'][selector]['gender']),
-                age = selectAttr(config['ModeConfig'][selector]['age']),
-                place = fake.location_on_land()
-            )
-            emitClick(producer, clickTopic, newSession)
-            if not args.quiet:
-                sys.stderr.write('.')
-                sys.stderr.flush()
-            allSessions.append(newSession)
-        # Pick one of the sessions
-        try:
-            thisSession = random.choice(allSessions)
-            logging.debug(f'--> Session id {thisSession.sid}')
-            logging.debug(thisSession)
-            thisSession.advance()
-            emitClick(producer, clickTopic, thisSession)
-            if not args.quiet:
-                sys.stderr.write('.')
-                sys.stderr.flush()
-        except IndexError:
-            logging.debug('--> No sessions to choose from')
-        except KeyError:
-            emitSession(producer, sessionTopic, thisSession)
-            if not args.quiet:
-                sys.stderr.write(':')
-                sys.stderr.flush()
-            # Here we end up when the session was in exit state
-            logging.debug(f'--> removing session id {thisSession.sid}')
-            allSessions.remove(thisSession)
-        tm = time.gmtime()
-        # code for linear interpolation
-        # weight = (timeEnvelope[(tm.tm_hour + 1) % 24] * tm.tm_min + timeEnvelope[tm.tm_hour] * (60 - tm.tm_min)) / 60.0 # this should be between 0 and 1000
-        # but use spline instead:
-        weight = interpolate.splev(tm.tm_hour + tm.tm_min / 60.0 + tm.tm_sec / 3600.0, tck)
-        logging.debug(f'envelope values: {timeEnvelope[tm.tm_hour]}, {timeEnvelope[(tm.tm_hour + 1) % 24]}')
-        logging.debug(f'weight from envelope: {weight}')
-        waitSecs = random.uniform(minSleep, maxSleep) 
-        if weight > 0:
-            waitSecs = waitSecs * 1000.0 / weight
-        logging.debug(f'wait time: {waitSecs}')
-        time.sleep(waitSecs)
+        selector = config['Mode'] # this comes from the dynamic config now
+        if selector is None or selector not in allModes:
+            logging.debug('falling back to default mode')
+            selector = 'default'
+
+        if args.dry_run:
+            producer = None
+            clickTopic = None
+            sessionTopic = None
+        else:
+            clickTopic = config['General']['clickTopic']
+            sessionTopic = config['General']['sessionTopic']
+            logging.debug(f'clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
+            kafkaconf = config['Kafka']
+            kafkaconf['client.id'] = socket.gethostname()
+            logging.debug(f'Kafka client configuration: {kafkaconf}')
+            producer = Producer(kafkaconf)
+
+        minSleep = config['General']['minSleep']
+        if minSleep is None:
+            minSleep = 0.01
+        maxSleep = config['General']['maxSleep']
+        if maxSleep is None:
+            maxSleep = 0.04
+
+        # a reconfigure may change the max sessions but does not touch existing ones
+        maxSessions = config['General']['maxSessions']
+        if maxSessions is None:
+            maxSessions = 50000
+
+        timeEnvelope = config['ModeConfig'][selector]['timeEnvelope'] # array with 24 values
+        # set up the spline interpolator
+        xi = list(range(-24, 48)) # 3 times 24 hours, we are going to use only the [0, 24) part
+        yi = timeEnvelope + timeEnvelope + timeEnvelope # 3 times the envelope so the middle part is stitched smoothly at the edges
+        tck = interpolate.splrep(xi, yi)
+
+        reconfigure = False
+
+        while not reconfigure:
+
+            logging.debug('Top of loop')
+            logging.debug(f'Total elements in list: {len(allSessions)}')
+            logging.debug(f'state selector: {selector}')
+            # With a certain probability, create a new session
+            if random.random() < 0.5 and len(allSessions) < maxSessions:
+                sessionId += 1
+                logging.debug(f'--> Creating Session: id {sessionId}')
+                salesAmount = random.uniform(10.0, 90.0);
+
+                # Pick the right transition matrix for the mode we are running in
+                States = config['StateMachine']['States']
+                StateTransitionMatrix = config['StateMachine']['StateTransitionMatrix'][selector]
+
+                # The new session will start on the home page and it will be assigned a random user ID
+                newSession = Session(
+                    States, States[0], StateTransitionMatrix,
+                    useragent = fake.user_agent(),
+                    sid = sessionId,
+                    uid = fake.numerify('%####'), # 10000..99999
+                    isSubscriber = int(fake.boolean(chance_of_getting_true=5)),
+                    campaign = selectAttr(config['ModeConfig'][selector]['campaign']),
+                    channel = selectAttr(config['ModeConfig'][selector]['channel']),
+                    contentId = random.choice(l_content),
+                    subContentId = fake.sentence(nb_words=6)[:-1],
+                    gender = selectAttr(config['ModeConfig'][selector]['gender']),
+                    age = selectAttr(config['ModeConfig'][selector]['age']),
+                    place = fake.location_on_land()
+                )
+                emitClick(producer, clickTopic, newSession)
+                if not args.quiet:
+                    sys.stderr.write('.')
+                    sys.stderr.flush()
+                allSessions.append(newSession)
+            # Pick one of the sessions
+            try:
+                thisSession = random.choice(allSessions)
+                logging.debug(f'--> Session id {thisSession.sid}')
+                logging.debug(thisSession)
+                thisSession.advance()
+                emitClick(producer, clickTopic, thisSession)
+                if not args.quiet:
+                    sys.stderr.write('.')
+                    sys.stderr.flush()
+            except IndexError:
+                logging.debug('--> No sessions to choose from')
+            except KeyError:
+                emitSession(producer, sessionTopic, thisSession)
+                if not args.quiet:
+                    sys.stderr.write(':')
+                    sys.stderr.flush()
+                # Here we end up when the session was in exit state
+                logging.debug(f'--> removing session id {thisSession.sid}')
+                allSessions.remove(thisSession)
+            tm = time.gmtime()
+            # code for linear interpolation
+            # weight = (timeEnvelope[(tm.tm_hour + 1) % 24] * tm.tm_min + timeEnvelope[tm.tm_hour] * (60 - tm.tm_min)) / 60.0 # this should be between 0 and 1000
+            # but use spline instead:
+            weight = interpolate.splev(tm.tm_hour + tm.tm_min / 60.0 + tm.tm_sec / 3600.0, tck)
+            logging.debug(f'envelope values: {timeEnvelope[tm.tm_hour]}, {timeEnvelope[(tm.tm_hour + 1) % 24]}')
+            logging.debug(f'weight from envelope: {weight}')
+            waitSecs = random.uniform(minSleep, maxSleep) 
+            if weight > 0:
+                waitSecs = waitSecs * 1000.0 / weight
+            logging.debug(f'wait time: {waitSecs}')
+            time.sleep(waitSecs)
         
 
 if __name__ == "__main__":

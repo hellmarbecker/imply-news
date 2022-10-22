@@ -2,6 +2,8 @@
 IncludeOptional:
     # Secure Kafka settings
     - news_secret.yml
+    # Mode setting
+    - news_dynamic.yml
 General:
     # Maximum number of sessions that can be open in the simulator at the same time
     maxSessions: 50000
