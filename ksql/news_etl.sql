@@ -1,7 +1,7 @@
 -- Create a raw stream from input data
 
 CREATE OR REPLACE STREAM `imply-news-raw` (
-  `sid` STRING KEY, 
+  `sid_key` STRING KEY, 
   `payload` STRING 
 ) 
 WITH ( KAFKA_TOPIC='imply-news', KEY_FORMAT='KAFKA', VALUE_FORMAT='KAFKA' );
@@ -16,7 +16,7 @@ CREATE OR REPLACE STREAM `imply-news-clicks` WITH (
   KEY_FORMAT='KAFKA',
   VALUE_FORMAT='KAFKA' ) AS
 SELECT
-  `sid`,
+  `sid_key`,
   `payload` 
 FROM `imply-news-raw` 
 WHERE EXTRACTJSONFIELD(`payload`, '$.recordType') = 'click';
@@ -26,7 +26,8 @@ WHERE EXTRACTJSONFIELD(`payload`, '$.recordType') = 'click';
 -- Still, this is plain schemaless JSON, so up to here there is no enforcement of the governance contract.
 
 CREATE OR REPLACE STREAM `imply-news-cooked` (
-  `sid` STRING KEY,
+  `sid_key` STRING KEY,
+  `sid` STRING,
   `timestamp` BIGINT,
   `recordType` STRING,
   `url` STRING,
@@ -68,6 +69,7 @@ CREATE OR REPLACE STREAM `imply-news-avro` WITH (
   KEY_FORMAT='KAFKA',
   VALUE_FORMAT='AVRO' ) AS
 SELECT
+  `sid_key`,
   `sid`,
   `timestamp`,
   `recordType`,
@@ -98,9 +100,10 @@ CREATE OR REPLACE TABLE `imply-news-sessions` WITH (
   KEY_FORMAT='KAFKA',
   VALUE_FORMAT='JSON' ) AS
 SELECT
-  `sid`,
-  MIN(`timestamp`) AS session_start_time,
-  MAX(`timestamp`) AS session_end_time,
+  `sid_key`,
+  MAX(`sid`) AS `sid`,
+  MIN(`timestamp`) AS `session_start_time`,
+  MAX(`timestamp`) AS `session_end_time`,
   MAX(`useragent`) AS `useragent`,
   COLLECT_LIST(`state`) AS `statesVisited`,
   MAX(`uid`) AS `uid`,
@@ -113,10 +116,10 @@ SELECT
   MAX(`place_name`) AS `place_name`,
   MAX(`country_code`) AS `country_code`,
   MAX(`timezone`) AS `timezone`,
-  COUNT(*) AS session_depth
+  COUNT(*) AS `session_depth`
 FROM `imply-news-cooked`
 WINDOW SESSION (30 MINUTES)
-GROUP BY `sid`
+GROUP BY `sid_key`
 EMIT FINAL;
 
 -- Session changelog
