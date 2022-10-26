@@ -36,22 +36,40 @@ The `timeEnvelope` setting must be an array of 24 values, each between 0 and 100
 
 ### Components of the news data generator
 
-`news_process.py`
+#### `news_process.py`
 
 The generator script proper. It writes its result to Kafka, or in developer mode to standard output.
 
-`news_config.yml`
+Invocation: python3 news_process.py [-h] [-d] [-q] -f CONFIG [-n]
 
-State values and transition matrices
+where
 
-`news_simulator.sh`
+```
+-d - debug mode, create rich logging output to stderr
+-q - quiet mode, don't write anything to stderr (usually it writes a '.' per click and a ':' per session)
+-f CONFIG - config file, this is required
+-n - write to stdout instead of Kafka, for testing. Kafka options are ignored
+```
+
+`news_process.py` handles the following signals:
+- `SIGHUP` triggers a configuration reread. Typically you would update `news_dynamic.yml` and then send `SIGHUP` to switch mode
+- `SIGUSR1` is ignored and can be used as a heartbeat.
+
+#### `news_config.yml`
+
+State values and transition matrices. This is a YAML file and has two subfiles that can be included:
+
+- `news_secret.yml` is for sensitive options such as Kafka API keys or passwords, overrides settings in main config file
+- `news_dynamic.yml` contains the mode (default or special, you can define more)
+
+#### `news_simulator.sh`
 
 Driver script, handles mode selection.
 
-`admin.crontab`
+#### `admin.crontab`
 
 Crontab for the default user (`admin` on Debian.) This will cause a drop in conversion rates 1x per week for a few hours. Install using `crontab -e`.
 
-`cube-imply-news.json`
+#### `cube-imply-news.json`
 
 This is not strictly part of the project. It shows an example of a Pivot cube configuration with suggested dimensions and measures for the Imply News data set.
