@@ -29,6 +29,7 @@ Python packages:
 - Faker
 - confluent_kafka
 - scipy
+- mergedeep
 
 ### Time envelope
 

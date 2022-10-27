@@ -8,6 +8,7 @@ import socket
 import signal
 from faker import Faker
 from confluent_kafka import Producer
+from mergedeep import merge
 
 
 baseurl = "https://imply-news.com"
@@ -189,14 +190,17 @@ def readConfig(ifn):
     logging.debug(f'reading config file {ifn}')
     with open(ifn, 'r') as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
+        includecfgs = []
         # get include files if present
         for inc in cfg.get("IncludeOptional", []):
             try:
                 logging.debug(f'reading include file {inc}')
-                cfg.update(yaml.load(open(inc), Loader=yaml.FullLoader))
+                c = yaml.load(open(inc), Loader=yaml.FullLoader)
+                includecfgs.append(c)
             except FileNotFoundError:
                 logging.debug(f'optional include file {inc} not found, continuing')
-        logging.debug(f'Configuration: {cfg}')
+        merge(cfg, *includecfgs)
+        logging.info(f'Configuration: {cfg}')
         checkConfig(cfg)
         return cfg
 
