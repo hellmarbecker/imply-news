@@ -6,17 +6,25 @@ PIDFILE=/tmp/news_simulator.pid
 LOG=/tmp/news_simulator.log
 ERROR=/tmp/news_simulator-error.log
 CONFIG=news_config.yml
+CONFIG_DYNAMIC=news_dynamic.yml
 CMD=news_process.py
 OPTSTRING="dnq" # recognized cmd options
 
+setProfile() {
+    echo "==== Set Profile"
+    echo "Mode: $1" >"${BASE}/${CONFIG_DYNAMIC}"
+}
+
+
 status() {
-    echo "==== Status check"
+    signal=${1:-"USR1"}
+    echo "==== Status check with signal $signal"
     if [ -f $PIDFILE ]
     then
         PID=$( cat $PIDFILE )
         echo
         echo "Found PID: [$PID]"
-        kill -USR1 $PID
+        kill -$signal $PID
         ALIVE=$?
         echo "Live check: $ALIVE"
         # we are running, nothing to do
@@ -26,6 +34,11 @@ status() {
         /bin/rm -f $PIDFILE
     fi 
     return 1
+}
+
+reload() {
+    echo "==== Reload"
+    status "HUP"
 }
 
 start() {
@@ -83,7 +96,7 @@ shift $((OPTIND -1))
 profile=${2:-default}
 COMMAND="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG -m $profile"
 echo "remaining parameters: $@"
-exit 0
+# exit 0
 
 case "$1" in
     'start')
@@ -96,6 +109,10 @@ case "$1" in
             stop ; echo "Sleeping..."; sleep 1 ;
             start "$2"
             ;;
+    'reload')
+            setProfile $profile
+            reload
+            ;;
     'status')
             status
             ;;
@@ -104,11 +121,11 @@ case "$1" in
             ;;
     *)
             echo
-            echo "Usage: $0 { start | stop | restart | status | switch }"
+            echo "Usage: $0 [-dnq] { start | stop | restart | status | switch } <profile>"
             echo
             exit 1
             ;;
 esac
 
-exit 0"
+exit 0
 
