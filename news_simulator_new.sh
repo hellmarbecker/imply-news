@@ -7,7 +7,8 @@ LOG=/tmp/news_simulator.log
 ERROR=/tmp/news_simulator-error.log
 CONFIG=news_config.yml
 CONFIG_DYNAMIC=news_dynamic.yml
-CMD=news_process.py
+# CMD=news_process.py
+CMD=dummy.py
 OPTSTRING="dnq" # recognized cmd options
 
 setProfile() {
@@ -25,10 +26,10 @@ status() {
         echo
         echo "Found PID: [$PID]"
         kill -$signal $PID
-        ALIVE=$?
-        echo "Live check: $ALIVE"
+        alive=$?
+        echo "Live check: $alive"
         # we are running, nothing to do
-        [ $ALIVE -eq 0 ] && return 0
+        [ $alive -eq 0 ] && return 0
 
         # if we get here, we have a stale PID file
         /bin/rm -f $PIDFILE
@@ -39,6 +40,9 @@ status() {
 reload() {
     echo "==== Reload"
     status "HUP"
+    ret=$?
+    echo "status returns $ret"
+    return $ret
 }
 
 start() {
