@@ -31,17 +31,18 @@ def main():
     logLevel = logging.DEBUG
     logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=logLevel)
 
-    logging.debug(f'my pid: {os.getpid()}')
+    pid = os.getpid()
+    logging.debug(f'my pid: {pid}')
 
     while True:
 
-        logging.debug('Top of outer loop')
+        logging.debug(f'{pid} Top of outer loop')
         reconfigure = False
 
         while not reconfigure:
 
-            logging.debug('Top of inner loop')
-            waitSecs = 1
+            logging.debug(f'{pid} Top of inner loop')
+            waitSecs = 30
             logging.debug(f'wait time: {waitSecs}')
             time.sleep(waitSecs)
         
