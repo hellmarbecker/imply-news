@@ -1,188 +1,140 @@
 #!/bin/bash
-#
-# Based on code by ahadjidj
 
 BASE=~/imply-news
-PID=/tmp/news_simulator.pid
-NORMAL=/tmp/normal.flag
-ABNORMAL=/tmp/abnormal.flag
+PIDFILE=/tmp/news_simulator.pid
+
 LOG=/tmp/news_simulator.log
 ERROR=/tmp/news_simulator-error.log
 CONFIG=news_config.yml
+CONFIG_DYNAMIC=news_dynamic.yml
 CMD=news_process.py
-OPTSTRING="d" # cmd options
+# CMD=dummy.py
+OPTSTRING="dnq" # recognized cmd options
+
+setProfile() {
+    # only write profile file
+    mode=${1:-"default"}
+    echo "==== Set Profile: ${mode}"
+    echo "Mode: ${mode}" >"${BASE}/${CONFIG_DYNAMIC}"
+}
 
 status() {
-    echo
-    echo "==== Status"
-
-    if [ -f $PID ]
+    # return 0 if running
+    signal=${1:-"USR1"}
+    echo "==== Status check with signal $signal"
+    if [ -f $PIDFILE ]
     then
+        PID=$( cat $PIDFILE )
         echo
-        echo "Pid file: $( cat $PID ) [$PID]"
-        echo
-        ps -ef | grep -v grep | grep $( cat $PID )
-        if [ -f $NORMAL ] 
-        then
-            echo
-            echo "Running in normal mode"
-            echo
-        else
-            if [ -f $ABNORMAL ]
-            then
-                echo
-                echo "Running in abnormal mode"
-                echo
-            else
-                echo
-                echo "Unable to determine the mode"
-                echo
-            fi
-        fi
-    else
-        echo
-        echo "No Pid file"
-    fi
+        echo "Found PID: [$PID]"
+        kill -$signal $PID
+        alive=$?
+        echo "Live check: $alive"
+        # we are running, nothing to do
+        [ $alive -eq 0 ] && return 0
+
+        # if we get here, we have a stale PID file
+        /bin/rm -f $PIDFILE
+    fi 
+    return 1
 }
 
-start_normal() {
-    if [ -f $PID ]
-    then
-        echo
-        echo "Already started. PID: [$( cat $PID )]"
-    else
-        echo "==== Start in normal mode"
-        touch $PID
-        touch $NORMAL
-        if [ -f $ABNORMAL ]
-        then
-            /bin/rm $ABNORMAL
-        fi
-        if nohup $COMMAND_NORMAL >>$LOG 2>&1 &
-        then echo $! >$PID
-             echo "Done."
-             echo "$(date '+%Y-%m-%d %X'): START" >>$LOG
-        else echo "Error... "
-             /bin/rm $PID
-             /bin/rm $NORMAL
-        fi
-    fi
+reload() {
+    # only reload, do not set profile file
+    echo "==== Reload"
+    status "HUP"
+    ret=$?
+    echo "status returns $ret"
+    return $ret
 }
 
-start_abnormal() {
-    if [ -f $PID ]
+start() {
+    # set profile file, if parameter given
+    [  -z $1 ] || setProfile $1
+
+    # restart if necessary, otherwise reload config
+    # Check if we are already running
+    status "HUP" && return 0
+
+    echo "==== Starting"
+    if nohup $COMMAND >>$LOG 2>&1 &
     then
-        echo
-        echo "Already started. PID: [$( cat $PID )]"
-    else
-        echo "==== Start in abnormal mode"
-        touch $PID
-        touch $ABNORMAL
-        if [ -f $NORMAL ]
-        then
-            /bin/rm $NORMAL
-        fi
-        if nohup $COMMAND_ABNORMAL >>$LOG 2>&1 &
-        then echo $! >$PID
-             echo "Done."
-             echo "$(date '+%Y-%m-%d %X'): START" >>$LOG
-        else echo "Error... "
-             /bin/rm $PID
-             /bin/rm $ABNORMAL
-        fi
-    fi
+        echo $! >$PIDFILE
+        echo "Done."
+        echo "$(date '+%Y-%m-%d %X'): START" >>$LOG
+        return 0
+    fi 
+
+    echo "Error... "
+    /bin/rm -f $PIDFILE
+    return 1
 }
 
 stop() {
     echo "==== Stop"
 
-    if [ -f $PID ]
+    if [ -f $PIDFILE ]
     then
-        if kill $( cat $PID )
+        if kill $( cat $PIDFILE )
         then echo "Done."
              echo "$(date '+%Y-%m-%d %X'): STOP" >>$LOG
         fi
-        /bin/rm $PID
-        if [ -f $NORMAL ]
-        then
-            /bin/rm $NORMAL
-        fi
-        if [ -f $ABNORMAL ]
-        then
-            /bin/rm $ABNORMAL
-        fi
-        #kill_cmd
+        /bin/rm -f $PIDFILE
     else
         echo "No pid file. Already stopped?"
     fi
 }
 
-switch() {
-    if [ -f $PID ]
-    then
-        if [ -f $NORMAL ]
-        then
-            echo "==== Switch from normal to abnormal"
-            stop ; echo "Sleeping..."; sleep 1 ;
-            start_abnormal
-        else 
-            echo "==== Switch from abnormal to normal"
-            stop ; echo "Sleeping..."; sleep 1 ;
-            start_normal
-        fi
-    else
-        echo "You need to run the simulator before switching"
-    fi
-}
+# --- main entry point ---
 
-FLAGS="-q"
 while getopts ${OPTSTRING} arg; do
     case "${arg}" in
-        d)
-            # debug mode
-            FLAGS="-d"
+        d|n|q)
+            FLAGS="${FLAGS} -${arg}"
+            echo "Flags: ${FLAGS}"
             ;;
         *)
             echo "Unknown option: -${OPTARG}"
             exit 2
             ;;
-    esac
+    esac 
 done
+# if no flags are given, start in quiet mode
+FLAGS=${FLAGS:-"-q"}
+echo "Flags: ${FLAGS}"
 shift $((OPTIND -1))
 
-COMMAND_NORMAL="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG -m default"
-COMMAND_ABNORMAL="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG -m special"
-# echo $COMMAND_NORMAL
-# echo "$1"
-# exit 1
+profile=$2
+COMMAND="python3 $BASE/$CMD $FLAGS -f $BASE/$CONFIG"
+echo "remaining parameters: $@"
+# exit 0
 
 case "$1" in
     'start')
-            start_normal
+            start "${profile}"
             ;;
     'stop')
             stop
             ;;
     'restart')
-            stop ; echo "Sleeping..."; sleep 1 ;
-            start_normal
-            ;;
-    'restartSpecial')
-            stop ; echo "Sleeping..."; sleep 1 ;
-            start_abnormal
+            stop
+            echo "Sleeping..."
+            sleep 1
+            start "${profile}"
             ;;
     'status')
             status
             ;;
     'switch')
-            switch
+            start "${profile}"
             ;;
     *)
             echo
-            echo "Usage: $0 { start | stop | restart | status | switch }"
+            echo "Usage: $0 [-dnq] { start | stop | restart | status | switch } <profile>"
             echo
             exit 1
             ;;
 esac
 
 exit 0
+
