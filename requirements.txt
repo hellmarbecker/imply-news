@@ -1,0 +1,5 @@
+scipy
+faker
+confluent_kafka
+mergedeep
+
