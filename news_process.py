@@ -8,11 +8,11 @@ import socket
 import signal
 from faker import Faker
 from confluent_kafka import Producer
-from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField
+from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField, Serializer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
 from confluent_kafka.schema_registry.json_schema import JSONSerializer
-from confluent_kafka.schema_registry.protobuf import ProtobufSerializer
+# from confluent_kafka.schema_registry.protobuf import ProtobufSerializer
 from mergedeep import merge
 
 
@@ -111,7 +111,7 @@ class PlainJSONSerializer(Serializer): # serialize json without schema registry
 
 def srSerializer(config, item): # item is click or session
 
-    if config["General"]["enableSchemaRegistry"]:
+    if "enableSchemaRegistry" in config["SchemaRegistry"] and config["SchemaRegistry"]["enableSchemaRegistry"]:
         schema_registry_conf = {'url': config["SchemaRegistry"]["url"]}
         schema_registry_client = SchemaRegistryClient(schema_registry_conf)
 
@@ -140,20 +140,20 @@ def srSerializer(config, item): # item is click or session
 
 msgCount = 0
 
-def emit(producer, topic, key_serializer, value_serializer, emitRecord):
+def emit(producer, topic, value_serializer, emitRecord):
     global msgCount
     sid = emitRecord['sid']
     if producer is None:
         print(f'{sid}|{json.dumps(emitRecord)}')
     else:
-        producer.produce(topic, key=key_serializer(sid), value=value_serializer(emitRecord))
+        producer.produce(topic, key=str(sid), value=value_serializer(emitRecord, SerializationContext(topic, MessageField.VALUE)))
         msgCount += 1
         if msgCount >= 2000:
             producer.flush()
             msgCount = 0
         producer.poll(0)
 
-def emitClick(p, t, ks, vs, s):
+def emitClick(p, t, vs, s):
     emitRecord = {
         'timestamp' : time.time(),
         'recordType' : 'click',
@@ -177,9 +177,9 @@ def emitClick(p, t, ks, vs, s):
         'country_code' : s.place[3],
         'timezone' : s.place[4]
     }
-    emit(p, t, ks, vs, emitRecord)
+    emit(p, t, vs, emitRecord)
 
-def emitSession(p, t, ks, vs, s):
+def emitSession(p, t, vs, s):
     emitRecord = {
         'timestamp' : s.startTime,
         'recordType' : 'session',
@@ -200,7 +200,7 @@ def emitSession(p, t, ks, vs, s):
     }
     # explode and pivot the states visited
     emitRecord.update( { t : (int(t in s.statesVisited)) for t in s.states } )
-    emit(p, t, ks, vs, emitRecord)
+    emit(p, t, vs, emitRecord)
 
 # Check configuration
 
@@ -303,8 +303,8 @@ def main():
             sessionTopic = config['General']['sessionTopic']
             logging.debug(f'clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
 
-            clickSerializer = srSerializer('click')
-            sessionSerializer = srSerializer('session')
+            clickSerializer = srSerializer(config, 'click')
+            sessionSerializer = srSerializer(config, 'session')
 
             kafkaconf = config['Kafka']
             kafkaconf['client.id'] = socket.gethostname()
