@@ -104,7 +104,7 @@ class Session:
 
 class PlainJSONSerializer(Serializer): # serialize json without schema registry
 
-    def __call__(obj, ctx=None):
+    def __call__(self, obj, ctx=None):
 
         return json.dumps(obj)
 
