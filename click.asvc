@@ -1,0 +1,93 @@
+{
+    "name": "click",
+    "type": "record",
+    "fields": [
+        {
+            "name": "timestamp",
+            "type": "double"
+        },
+        {
+            "name": "recordType",
+            "type": "string"
+        },
+        {
+            "name": "url",
+            "type": "string"
+        },
+        {
+            "name": "useragent",
+            "type": "string"
+        },
+        {
+            "name": "statuscode",
+            "type": "string"
+        },
+        {
+            "name": "state",
+            "type": "string"
+        },
+        {
+            "name": "statesVisited",
+            "type": {
+                "type": "array",
+                "items": "string"
+            }
+        },
+        {
+            "name": "sid",
+            "type": "long"
+        },
+        {
+            "name": "uid",
+            "type": "string"
+        },
+        {
+            "name": "isSubscriber",
+            "type": "int"
+        },
+        {
+            "name": "campaign",
+            "type": "string"
+        },
+        {
+            "name": "channel",
+            "type": "string"
+        },
+        {
+            "name": "contentId",
+            "type": "string"
+        },
+        {
+            "name": "subContentId",
+            "type": "string"
+        },
+        {
+            "name": "gender",
+            "type": "string"
+        },
+        {
+            "name": "age",
+            "type": "string"
+        },
+        {
+            "name": "latitude",
+            "type": "double"
+        },
+        {
+            "name": "longitude",
+            "type": "double"
+        },
+        {
+            "name": "place_name",
+            "type": "string"
+        },
+        {
+            "name": "country_code",
+            "type": "string"
+        },
+        {
+            "name": "timezone",
+            "type": "string"
+        }
+    ]
+}

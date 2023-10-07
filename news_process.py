@@ -120,7 +120,7 @@ def srSerializer(config, item): # item is click or session
             schema_str = f.read()
             # TODO this has no error handling at all!
 
-        match config["schemaType"]:
+        match config["SchemaRegistry"]["schemaType"]:
             case "avro":
                 s = AvroSerializer(schema_registry_client, schema_str)
             case "json":
