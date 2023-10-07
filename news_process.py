@@ -8,6 +8,11 @@ import socket
 import signal
 from faker import Faker
 from confluent_kafka import Producer
+from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroSerializer
+from confluent_kafka.schema_registry.json_schema import JSONSerializer
+from confluent_kafka.schema_registry.protobuf import ProtobufSerializer
 from mergedeep import merge
 
 
@@ -95,24 +100,60 @@ class Session:
     def url(self):
         return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId.replace(' ', '-')
 
-msgCount = 0
+# Serializers for schema support
+
+class PlainJSONSerializer(Serializer): # serialize json without schema registry
+
+    def __call__(obj, ctx=None):
+
+        return json.dumps(obj)
+
+
+def srSerializer(config, item): # item is click or session
+
+    if config["General"]["enableSchemaRegistry"]:
+        schema_registry_conf = {'url': config["SchemaRegistry"]["url"]}
+        schema_registry_client = SchemaRegistryClient(schema_registry_conf)
+
+        schemaPath = config["SchemaRegistry"]["schemaFile"][item]
+        with open(schemaPath) as f:
+            schema_str = f.read()
+            # TODO this has no error handling at all!
+
+        match config["schemaType"]:
+            case "avro":
+                s = AvroSerializer(schema_registry_client, schema_str)
+            case "json":
+                s = JSONSerializer(schema_str, schema_registry_client)
+            case "protobuf":
+                # s = ProtobufSerializer(user_pb2.User, schema_registry_client, {'use.deprecated.format': False})
+                logging.error(f'Unsupported serializer {config["SchemaRegistry"]["schemaType"]}')
+                s = None
+            case _:
+                logging.error(f'Unknown serializer {config["SchemaRegistry"]["schemaType"]}')
+                s = None
+    else:
+        s = PlainJSONSerializer()
+    return s
 
 # Output functions - write to Kafka, or to stdout as JSON
 
-def emit(producer, topic, emitRecord):
+msgCount = 0
+
+def emit(producer, topic, key_serializer, value_serializer, emitRecord):
     global msgCount
     sid = emitRecord['sid']
     if producer is None:
         print(f'{sid}|{json.dumps(emitRecord)}')
     else:
-        producer.produce(topic, key=str(sid), value=json.dumps(emitRecord))
+        producer.produce(topic, key=key_serializer(sid), value=value_serializer(emitRecord))
         msgCount += 1
         if msgCount >= 2000:
             producer.flush()
             msgCount = 0
         producer.poll(0)
 
-def emitClick(p, t, s):
+def emitClick(p, t, ks, vs, s):
     emitRecord = {
         'timestamp' : time.time(),
         'recordType' : 'click',
@@ -136,9 +177,9 @@ def emitClick(p, t, s):
         'country_code' : s.place[3],
         'timezone' : s.place[4]
     }
-    emit(p, t, emitRecord)
+    emit(p, t, ks, vs, emitRecord)
 
-def emitSession(p, t, s):
+def emitSession(p, t, ks, vs, s):
     emitRecord = {
         'timestamp' : s.startTime,
         'recordType' : 'session',
@@ -159,7 +200,7 @@ def emitSession(p, t, s):
     }
     # explode and pivot the states visited
     emitRecord.update( { t : (int(t in s.statesVisited)) for t in s.states } )
-    emit(p, t, emitRecord)
+    emit(p, t, ks, vs, emitRecord)
 
 # Check configuration
 
@@ -261,6 +302,10 @@ def main():
             clickTopic = config['General']['clickTopic']
             sessionTopic = config['General']['sessionTopic']
             logging.debug(f'clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
+
+            clickSerializer = srSerializer('click')
+            sessionSerializer = srSerializer('session')
+
             kafkaconf = config['Kafka']
             kafkaconf['client.id'] = socket.gethostname()
             logging.debug(f'Kafka client configuration: {kafkaconf}')
@@ -316,7 +361,7 @@ def main():
                     age = selectAttr(config['ModeConfig'][selector]['age']),
                     place = fake.location_on_land()
                 )
-                emitClick(producer, clickTopic, newSession)
+                emitClick(producer, clickTopic, clickSerializer, newSession)
                 if not args.quiet:
                     sys.stderr.write('.')
                     sys.stderr.flush()
@@ -327,14 +372,14 @@ def main():
                 logging.debug(f'--> Session id {thisSession.sid}')
                 logging.debug(thisSession)
                 thisSession.advance()
-                emitClick(producer, clickTopic, thisSession)
+                emitClick(producer, clickTopic, clickSerializer, thisSession)
                 if not args.quiet:
                     sys.stderr.write('.')
                     sys.stderr.flush()
             except IndexError:
                 logging.debug('--> No sessions to choose from')
             except KeyError:
-                emitSession(producer, sessionTopic, thisSession)
+                emitSession(producer, sessionTopic, sessionSerializer, thisSession)
                 if not args.quiet:
                     sys.stderr.write(':')
                     sys.stderr.flush()

@@ -12,13 +12,16 @@ General:
     # clickTopic and sessionTopic can be the same
     clickTopic: "imply-news-clicks-sr"
     sessionTopic: "imply-news-sessions-sr"
-    enableSchemaRegistry: true
-    # schemaType can be one of (avro, json, protobuf)
-    schemaType: "avro"
-    clickSchemaFile: "click.asvc"
-    sessionSchemaFile: "session.asvc"
 Kafka:
     bootstrap.servers: "localhost:9092"
+SchemaRegistry:
+    enableSchemaRegistry: true
+    url: "http://localhost:8081"
+    # schemaType can be one of (avro, json, protobuf)
+    schemaType: "avro"
+    schemaFile:
+        click: "click.asvc"
+        session: "session.asvc"
 StateMachine:
     States: [ 'home', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
     # exitState: 'exitSession'
