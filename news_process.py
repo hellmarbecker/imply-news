@@ -91,7 +91,7 @@ class Session:
         newState = selectAttr(self.stateTransitionMatrix[self.state])
         if newState is None:
             raise InvalidTransitionException()
-        self.eventTime = time.time()
+        self.eventTime = int(time.time())
         if self.startTime is None:
             self.startTime = self.eventTime
         logging.debug(f'advance(): from {self.state} to {newState}')
@@ -137,6 +137,8 @@ def srSerializer(config, item): # item is click or session
                 s = None
     else:
         s = PlainJSONSerializer()
+
+    logging.debug(f'serializer for {item} is {s}')
     return s
 
 # Output functions - write to Kafka, or to stdout as JSON
@@ -158,7 +160,7 @@ def emit(producer, topic, value_serializer, emitRecord):
 
 def emitClick(p, t, vs, s):
     emitRecord = {
-        'timestamp' : time.time(),
+        'timestamp' : int(time.time()),
         'recordType' : 'click',
         'url' : s.url(),
         'useragent' : s.useragent,
@@ -306,13 +308,13 @@ def main():
             sessionTopic = config['General']['sessionTopic']
             logging.debug(f'clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
 
-            clickSerializer = srSerializer(config, 'click')
-            sessionSerializer = srSerializer(config, 'session')
-
             kafkaconf = config['Kafka']
             kafkaconf['client.id'] = socket.gethostname()
             logging.debug(f'Kafka client configuration: {kafkaconf}')
             producer = Producer(kafkaconf)
+
+        clickSerializer = srSerializer(config, 'click')
+        sessionSerializer = srSerializer(config, 'session')
 
         minSleep = config['General']['minSleep']
         if minSleep is None:
