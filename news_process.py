@@ -45,6 +45,9 @@ def hupHandler(signum, frame):
 class DataGeneratorError(Exception):
     "Base exception for this project, all exceptions that can be raised inherit from this class."
 
+class GeneratorConfigError(DataGeneratorError):
+    "Invalid data generator configuration."
+
 class InvalidStateException(DataGeneratorError):
     "The current model state value is not mapped to a state definition."
 
@@ -214,16 +217,16 @@ def checkConfig(cfg):
         for originState, transitions in modes[mode].items():
             # is the origin state in the list?
             if originState not in states:
-                logging.debug(f'Mode {mode}: originState {originState} does not exist')
-                raise Exception
+                logging.error(f'Mode {mode}: originState {originState} does not exist')
+                raise GeneratorConfigError
             # do the target states match the main states list?
             if set(transitions.keys()) != states:
-                logging.debug(f'Mode {mode} originState {originState}: transitions do not match state list')
-                raise Exception
+                logging.error(f'Mode {mode} originState {originState}: transitions do not match state list')
+                raise GeneratorConfigError
             # are the probabilities okay?
             if abs(sum(transitions.values()) - 1.0) > eps:
-                logging.debug(f'Mode {mode} originState {originState}: transition probabilities do not add up to 1')
-                raise Exception
+                logging.error(f'Mode {mode} originState {originState}: transition probabilities do not add up to 1')
+                raise GeneratorConfigError
 
 # Read configuration
 
