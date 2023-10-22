@@ -41,7 +41,7 @@ The `timeEnvelope` setting must be an array of 24 values, each between 0 and 100
 
 The generator script proper. It writes its result to Kafka, or in developer mode to standard output.
 
-Invocation: python3 news_process.py [-h] [-d] [-q] -f CONFIG [-n]
+Invocation: `python3 news_process.py [-h] [-d] [-q] -f CONFIG [-n]`
 
 where
 
