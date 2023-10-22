@@ -11,55 +11,12 @@
             "type": "string"
         },
         {
-            "name": "url",
-            "type": "string"
-        },
-        {
-            "name": "useragent",
-            "type": "string"
-        },
-        {
-            "name": "statuscode",
-            "type": "string"
-        },
-        {
-            "name": "state",
-            "type": "string"
-        },
-        {
-            "name": "statesVisited",
-            "type": {
-                "type": "array",
-                "items": "string"
-            }
-        },
-        {
-            "name": "sid",
-            "type": "long"
-        },
-        {
             "name": "uid",
             "type": "string"
         },
         {
             "name": "isSubscriber",
             "type": "int"
-        },
-        {
-            "name": "campaign",
-            "type": "string"
-        },
-        {
-            "name": "channel",
-            "type": "string"
-        },
-        {
-            "name": "contentId",
-            "type": "string"
-        },
-        {
-            "name": "subContentId",
-            "type": "string"
         },
         {
             "name": "gender",
