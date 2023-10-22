@@ -10,8 +10,8 @@ General:
     minSleep: 0.001
     maxSleep: 0.004
     # Maximum users
-    maxUsers: 100
-    userChangeProbability: 0.1
+    maxUsers: 100000
+    userChangeProbability: 0.005
     # clickTopic and sessionTopic can be the same
     clickTopic: "imply-news-clicks-sr"
     sessionTopic: "imply-news-sessions-sr"
