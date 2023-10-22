@@ -103,6 +103,18 @@ class Session:
     def url(self):
         return baseurl + '/' + self.state + '/' + self.contentId + '/' + self.subContentId.replace(' ', '-')
 
+# User model
+
+class User:
+
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+    def __repr__(self):
+        return "{}({!r})".format(type(self).__name__, self.__dict__)
+   
+
 # Serializers for schema support
 
 class PlainJSONSerializer(Serializer): # serialize json without schema registry
@@ -145,13 +157,13 @@ def srSerializer(config, item): # item is click or session
 
 msgCount = 0
 
-def emit(producer, topic, value_serializer, emitRecord):
+def emit(producer, topic, key, value_serializer, emitRecord):
     global msgCount
-    sid = emitRecord['sid']
+    # sid = emitRecord['sid']
     if producer is None:
-        print(f'{sid}|{json.dumps(emitRecord)}')
+        print(f'{key}|{json.dumps(emitRecord)}')
     else:
-        producer.produce(topic, key=str(sid), value=value_serializer(emitRecord, SerializationContext(topic, MessageField.VALUE)))
+        producer.produce(topic, key=str(key), value=value_serializer(emitRecord, SerializationContext(topic, MessageField.VALUE)))
         msgCount += 1
         if msgCount >= 2000:
             producer.flush()
@@ -182,7 +194,7 @@ def emitClick(p, t, vs, s):
         'country_code' : s.place[3],
         'timezone' : s.place[4]
     }
-    emit(p, t, vs, emitRecord)
+    emit(p, t, s.sid, vs, emitRecord)
 
 def emitSession(p, t, vs, s):
     emitRecord = {
@@ -205,7 +217,24 @@ def emitSession(p, t, vs, s):
     }
     # explode and pivot the states visited
     emitRecord.update( { t : (int(t in s.statesVisited)) for t in s.states } )
-    emit(p, t, vs, emitRecord)
+    emit(p, t, s.sid, vs, emitRecord)
+
+def emitUser(p, t, vs, u):
+    logging.debug(f'emitting user record {u}')
+    emitRecord = {
+        'timestamp' : u.updatedTime,
+        'recordType' : 'user',
+        'uid' : u.uid,
+        'isSubscriber' : u.isSubscriber,
+        'gender' : u.gender,
+        'age' : u.age,
+        'latitude' : u.place[0],
+        'longitude' : u.place[1],
+        'place_name' : u.place[2],
+        'country_code' : u.place[3],
+        'timezone' : u.place[4]
+    }
+    emit(p, t, u.uid, vs, emitRecord)
 
 # Check configuration
 
@@ -287,6 +316,7 @@ def main():
 
     sessionId = 0
     allSessions = []
+    allUsers = {}
 
     while True:
 
@@ -303,9 +333,11 @@ def main():
             producer = None
             clickTopic = None
             sessionTopic = None
+            userTopic = None
         else:
             clickTopic = config['General']['clickTopic']
             sessionTopic = config['General']['sessionTopic']
+            userTopic = config['General']['userTopic']
             logging.debug(f'clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
 
             kafkaconf = config['Kafka']
@@ -315,6 +347,7 @@ def main():
 
         clickSerializer = srSerializer(config, 'click')
         sessionSerializer = srSerializer(config, 'session')
+        userSerializer = srSerializer(config, 'user')
 
         minSleep = config['General']['minSleep']
         if minSleep is None:
@@ -351,20 +384,36 @@ def main():
                 States = config['StateMachine']['States']
                 StateTransitionMatrix = config['StateMachine']['StateTransitionMatrix'][selector]
 
+                uid = fake.numerify('%####') # 10000..99999
+                if uid not in allUsers:
+                    newPlace = fake.location_on_land()
+                    newUser = User( 
+                        updatedTime = int(time.time()),
+                        recordType = 'user',
+                        uid = uid,
+                        isSubscriber = int(fake.boolean(chance_of_getting_true=5)),
+                        gender = selectAttr(config['ModeConfig'][selector]['gender']),
+                        age = selectAttr(config['ModeConfig'][selector]['age']),
+                        place = fake.location_on_land()
+                    )
+                    logging.debug(f'new user: {newUser}')
+                    emitUser(producer, userTopic, userSerializer, newUser)
+                    allUsers[uid] = newUser
+                        
                 # The new session will start on the home page and it will be assigned a random user ID
                 newSession = Session(
                     States, States[0], StateTransitionMatrix,
                     useragent = fake.user_agent(),
                     sid = sessionId,
-                    uid = fake.numerify('%####'), # 10000..99999
-                    isSubscriber = int(fake.boolean(chance_of_getting_true=5)),
+                    uid = uid, # 10000..99999
+                    isSubscriber = allUsers[uid].isSubscriber,
                     campaign = selectAttr(config['ModeConfig'][selector]['campaign']),
                     channel = selectAttr(config['ModeConfig'][selector]['channel']),
                     contentId = random.choice(l_content),
                     subContentId = fake.sentence(nb_words=6)[:-1],
-                    gender = selectAttr(config['ModeConfig'][selector]['gender']),
-                    age = selectAttr(config['ModeConfig'][selector]['age']),
-                    place = fake.location_on_land()
+                    gender = allUsers[uid].gender,
+                    age = allUsers[uid].age,
+                    place = allUsers[uid].place
                 )
                 emitClick(producer, clickTopic, clickSerializer, newSession)
                 if not args.quiet:

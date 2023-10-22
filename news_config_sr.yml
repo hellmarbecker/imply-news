@@ -12,6 +12,7 @@ General:
     # clickTopic and sessionTopic can be the same
     clickTopic: "imply-news-clicks-sr"
     sessionTopic: "imply-news-sessions-sr"
+    userTopic: "imply-news-users-sr"
 Kafka:
     bootstrap.servers: "localhost:9092"
 SchemaRegistry:
@@ -22,6 +23,7 @@ SchemaRegistry:
     schemaFile:
         click: "click.asvc"
         session: "session.asvc"
+        user: "user.asvc"
 StateMachine:
     States: [ 'home', 'content', 'clickbait', 'subscribe', 'plusContent', 'affiliateLink', 'exitSession' ]
     # exitState: 'exitSession'
