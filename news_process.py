@@ -1,6 +1,7 @@
 import yaml
 import json
 import random
+import math
 from scipy import interpolate
 import time
 import argparse, sys, logging
@@ -223,6 +224,7 @@ def emitUser(p, t, vs, u):
     logging.debug(f'emitting user record {u}')
     emitRecord = {
         'timestamp' : u.updatedTime,
+        'version' : u.version,
         'recordType' : 'user',
         'uid' : u.uid,
         'isSubscriber' : u.isSubscriber,
@@ -361,6 +363,11 @@ def main():
         if maxSessions is None:
             maxSessions = 50000
 
+        maxUsers = config['General']['maxUsers']
+        userChangeProbability = config['General']['userChangeProbability']
+        userMask = "u{:0>" + str(1 + math.floor(math.log10(maxUsers - 1))) + "}" # userMask.format(uidNum)
+        logging.debug(f'user mask: {userMask}')
+
         timeEnvelope = config['ModeConfig'][selector]['timeEnvelope'] # array with 24 values
         # set up the spline interpolator
         xi = list(range(-24, 48)) # 3 times 24 hours, we are going to use only the [0, 24) part
@@ -384,11 +391,12 @@ def main():
                 States = config['StateMachine']['States']
                 StateTransitionMatrix = config['StateMachine']['StateTransitionMatrix'][selector]
 
-                uid = fake.numerify('%####') # 10000..99999
+                uid = userMask.format(fake.random_int(min=0, max=maxUsers-1))
                 if uid not in allUsers:
                     newPlace = fake.location_on_land()
                     newUser = User( 
                         updatedTime = int(time.time()),
+                        version = 1,
                         recordType = 'user',
                         uid = uid,
                         isSubscriber = int(fake.boolean(chance_of_getting_true=5)),
@@ -399,7 +407,13 @@ def main():
                     logging.debug(f'new user: {newUser}')
                     emitUser(producer, userTopic, userSerializer, newUser)
                     allUsers[uid] = newUser
-                        
+                elif random.random() < userChangeProbability:
+                    # address change
+                    logging.debug(f'user {uid} changed address')
+                    allUsers[uid].version += 1
+                    allUsers[uid].place = fake.location_on_land()
+                    emitUser(producer, userTopic, userSerializer, allUsers[uid])
+
                 # The new session will start on the home page and it will be assigned a random user ID
                 newSession = Session(
                     States, States[0], StateTransitionMatrix,
