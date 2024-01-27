@@ -127,7 +127,7 @@ class PlainJSONSerializer(Serializer): # serialize json without schema registry
 
 def srSerializer(config, item): # item is click or session
 
-    if "enableSchemaRegistry" in config["SchemaRegistry"] and config["SchemaRegistry"]["enableSchemaRegistry"]:
+    if "SchemaRegistry" in config and "enableSchemaRegistry" in config["SchemaRegistry"] and config["SchemaRegistry"]["enableSchemaRegistry"]:
         schema_registry_conf = {'url': config["SchemaRegistry"]["url"]}
         schema_registry_client = SchemaRegistryClient(schema_registry_conf)
 
@@ -335,11 +335,11 @@ def main():
             producer = None
             clickTopic = None
             sessionTopic = None
-            userTopic = None
+            # userTopic = None
         else:
             clickTopic = config['General']['clickTopic']
             sessionTopic = config['General']['sessionTopic']
-            userTopic = config['General']['userTopic']
+            # userTopic = config['General']['userTopic']
             logging.debug(f'clickTopic: {clickTopic} sessionTopic: {sessionTopic}')
 
             kafkaconf = config['Kafka']
@@ -405,14 +405,14 @@ def main():
                         place = fake.location_on_land()
                     )
                     logging.debug(f'new user: {newUser}')
-                    emitUser(producer, userTopic, userSerializer, newUser)
+                    # emitUser(producer, userTopic, userSerializer, newUser)
                     allUsers[uid] = newUser
                 elif random.random() < userChangeProbability:
                     # address change
                     logging.debug(f'user {uid} changed address')
                     allUsers[uid].version += 1
                     allUsers[uid].place = fake.location_on_land()
-                    emitUser(producer, userTopic, userSerializer, allUsers[uid])
+                    # emitUser(producer, userTopic, userSerializer, allUsers[uid])
 
                 # The new session will start on the home page and it will be assigned a random user ID
                 newSession = Session(
